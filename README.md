@@ -1,2 +1,0 @@
-# SHAYANAI
-A modern AI
