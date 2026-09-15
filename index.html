@@ -167,6 +167,10 @@ input,textarea,select{font-family:inherit;}
 .btn-icon.danger:hover{background:var(--danger-bg);color:var(--danger);}
 .btn svg{width:17px;height:17px;flex:none;}
 
+#enhanceBtn.loading svg{animation:enhanceSpin 0.9s linear infinite;}
+@keyframes enhanceSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+#enhanceBtn:disabled{opacity:.4;pointer-events:none;}
+
 .sidebar-search{position:relative;}
 .sidebar-search input{
   width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text-0);
@@ -378,6 +382,8 @@ input,textarea,select{font-family:inherit;}
 .edit-box-actions .btn{padding:7px 13px;font-size:12.5px;min-height:32px;}
 
 .typing-dots{display:inline-flex;align-items:center;gap:4px;padding:6px 0;}
+.thinking-wrap{display:inline-flex;align-items:center;gap:8px;}
+.thinking-label{font-size:12.5px;color:var(--text-2);}
 .typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--accent-1);animation:tDot 1.2s ease-in-out infinite;}
 .typing-dots span:nth-child(2){animation-delay:.15s;}
 .typing-dots span:nth-child(3){animation-delay:.3s;}
@@ -611,6 +617,51 @@ input[type="range"]{width:100%;accent-color:var(--accent-1);}
 @media (max-width:420px){
   .msg-avatar{width:26px;height:26px;}
 }
+
+/* ============================================================
+   Liquid Glass mode — optional translucent/frosted-glass look,
+   toggled independently of light/dark from Settings → Appearance.
+   ============================================================ */
+body.glass-mode{
+  background-image:
+    radial-gradient(900px 600px at 10% -10%, rgba(124,92,255,0.20), transparent 55%),
+    radial-gradient(800px 550px at 100% 15%, rgba(34,211,238,0.16), transparent 55%),
+    radial-gradient(700px 500px at 30% 110%, rgba(124,92,255,0.10), transparent 55%);
+  background-attachment:fixed;
+}
+body.glass-mode .app{ background:transparent; }
+body.glass-mode .sidebar,
+body.glass-mode .composer,
+body.glass-mode .modal,
+body.glass-mode .settings-panel,
+body.glass-mode .settings-card{
+  background:rgba(255,255,255,0.07) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(180%);
+  backdrop-filter:blur(22px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.16) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14), 0 12px 40px rgba(0,0,0,0.28) !important;
+}
+body[data-theme="light"].glass-mode .sidebar,
+body[data-theme="light"].glass-mode .composer,
+body[data-theme="light"].glass-mode .modal,
+body[data-theme="light"].glass-mode .settings-panel,
+body[data-theme="light"].glass-mode .settings-card{
+  background:rgba(255,255,255,0.45) !important;
+  border:1px solid rgba(255,255,255,0.55) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), 0 12px 40px rgba(20,22,40,0.10) !important;
+}
+body.glass-mode .settings-panel{ border-left:1px solid rgba(255,255,255,0.16) !important; }
+body.glass-mode .main{ background:transparent !important; }
+body.glass-mode .topbar{ background:transparent !important; }
+body.glass-mode .chat-item.active,
+body.glass-mode .suggestion-card,
+body.glass-mode .model-tier-card,
+body.glass-mode .persona-card,
+body.glass-mode .box{
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  background:rgba(255,255,255,0.06) !important;
+}
 </style>
 </head>
 <body data-theme="dark">
@@ -676,6 +727,9 @@ input[type="range"]{width:100%;accent-color:var(--accent-1);}
       <div class="composer" id="composerBox">
         <div class="composer-row">
           <textarea id="composerInput" placeholder="Message Shayan AI…" data-i18n-placeholder="composerPlaceholder" rows="1" aria-label="Message input"></textarea>
+          <button class="btn btn-icon" id="enhanceBtn" aria-label="Improve prompt" data-i18n-title="enhanceTitle" title="Improve prompt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2v3M9.5 19v3M2 9.5h3M19 9.5h3M4.5 4.5l2 2M14.5 14.5l2 2M4.5 14.5l2-2M14.5 4.5l2 2"/><path d="M9.5 6a3.5 3.5 0 003.5 3.5A3.5 3.5 0 009.5 13 3.5 3.5 0 006 9.5 3.5 3.5 0 009.5 6z"/></svg>
+          </button>
           <button class="stop-btn" id="stopBtn" style="display:none" aria-label="Stop generating" title="Stop generating">
             <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
           </button>
@@ -754,6 +808,10 @@ input[type="range"]{width:100%;accent-color:var(--accent-1);}
             <button data-v="en">English</button>
             <button data-v="fa">فارسی</button>
           </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label" data-i18n="glassEffect">Liquid Glass</div><div class="settings-row-desc" data-i18n="glassEffectDesc">Translucent, frosted-glass panels</div></div>
+          <label class="toggle"><input type="checkbox" id="cfgGlassEffect"><span class="track"></span><span class="thumb"></span></label>
         </div>
       </section>
 
@@ -937,6 +995,7 @@ const I18N = {
     settingsTitle:"Settings",
     appearanceHeader:"Appearance", theme:"Theme", themeDesc:"Light, dark, or match your system", light:"Light", dark:"Dark", system:"System",
     language:"Language", languageDesc:"Interface language",
+    glassEffect:"Liquid Glass", glassEffectDesc:"Translucent, frosted-glass panels",
     localModelHeader:"Local Model", cfgGpuWarning:"This browser doesn't support WebGPU, so no local model can run here. Try the latest Chrome or Edge.",
     loadSwitchModel:"Load / Switch model", streaming:"Streaming", streamingDesc:"Show tokens as they're generated",
     modelUnloaded:"Model unloaded — memory freed",
@@ -952,6 +1011,8 @@ const I18N = {
     aboutHeader:"About", aboutDesc:"Shayan AI — a fully independent, on-device AI assistant created by Shayan Ramezani. It runs its own model locally via WebGPU (WebLLM). No API, no key, no backend, no internet needed after the first download.",
     loadingModel:"Loading model…", loadedPrefix:"Loaded: ", noModelLoaded:"No model loaded",
     loadingModelShort:"loading model…", noModelLoadedShort:"no model loaded", notConnectedShort:"not connected",
+    thinkingIndicator:"Thinking…",
+    enhanceTitle:"Improve prompt", enhanceNoEngine:"No model or API is ready yet — set one up first.", enhanceEmpty:"Couldn't improve that — try again.",
     tierLabel_fast:"Fast & Light", tierLabel_balanced:"Balanced", tierLabel_power:"Max Power", tierLabel_persian:"Persian+ (Gemma2)",
     tierMeta_fast:"~1 GB · quickest", tierMeta_balanced:"~2 GB · recommended", tierMeta_power:"~4-5 GB · needs a strong device", tierMeta_persian:"~5-6 GB · best Persian in benchmarks",
     tierDesc_fast:"Quickest to start, good for simple chats", tierDesc_balanced:"Great everyday quality and speed", tierDesc_power:"The smartest, most capable option", tierDesc_persian:"Google's Gemma2 — scored highest on published Persian-language benchmarks (NLI, reasoning, QA) among open models tested",
@@ -987,6 +1048,7 @@ const I18N = {
     settingsTitle:"تنظیمات",
     appearanceHeader:"ظاهر برنامه", theme:"پوسته", themeDesc:"روشن، تیره یا هماهنگ با سیستم", light:"روشن", dark:"تیره", system:"سیستم",
     language:"زبان", languageDesc:"زبان رابط کاربری",
+    glassEffect:"شیشه‌ی مایع", glassEffectDesc:"پنل‌های شفاف و مات (افکت شیشه‌ای)",
     localModelHeader:"مدل محلی", cfgGpuWarning:"این مرورگر از WebGPU پشتیبانی نمی‌کنه، پس هیچ مدل محلی‌ای اینجا اجرا نمی‌شه. آخرین نسخه‌ی Chrome یا Edge رو امتحان کن.",
     loadSwitchModel:"بارگذاری / تعویض مدل", streaming:"استریم پاسخ", streamingDesc:"کلمات رو همون لحظه‌ی تولید نشون بده",
     modelUnloaded:"مدل از حافظه خارج شد",
@@ -1002,6 +1064,8 @@ const I18N = {
     aboutHeader:"درباره", aboutDesc:"Shayan AI — یک دستیار هوش مصنوعی کاملاً مستقل و روی‌دستگاه که Shayan Ramezani ساختتش. مدل خودش رو محلی با WebGPU (از طریق WebLLM) اجرا می‌کنه. بدون API، بدون کلید، بدون بک‌اند، بعد از اولین دانلود به اینترنت هم نیاز نداره.",
     loadingModel:"در حال بارگذاری مدل…", loadedPrefix:"بارگذاری‌شده: ", noModelLoaded:"مدلی بارگذاری نشده",
     loadingModelShort:"در حال بارگذاری مدل…", noModelLoadedShort:"مدلی بارگذاری نشده", notConnectedShort:"وصل نیست",
+    thinkingIndicator:"در حال فکر کردن…",
+    enhanceTitle:"بهتر کردن پرامپت", enhanceNoEngine:"هنوز مدلی یا APIای آماده نیست — اول یکی رو تنظیم کن.", enhanceEmpty:"نشد بهترش کنم — دوباره امتحان کن.",
     tierLabel_fast:"سریع و سبک", tierLabel_balanced:"متعادل", tierLabel_power:"قدرت بالا", tierLabel_persian:"فارسی+ (Gemma2)",
     tierMeta_fast:"~۱ گیگابایت · سریع‌ترین", tierMeta_balanced:"~۲ گیگابایت · پیشنهادی", tierMeta_power:"~۴-۵ گیگابایت · نیاز به دستگاه قوی", tierMeta_persian:"~۵-۶ گیگابایت · بهترین فارسی طبق بنچمارک",
     tierDesc_fast:"سریع‌ترین برای شروع، مناسب چت‌های ساده", tierDesc_balanced:"تعادل خوب بین کیفیت و سرعت", tierDesc_power:"باهوش‌ترین و تواناترین گزینه", tierDesc_persian:"مدل Gemma2 گوگل — طبق یه بنچمارک منتشرشده، بین مدل‌های تست‌شده بالاترین امتیاز رو تو فارسی (NLI، استدلال، QA) گرفته",
@@ -1033,6 +1097,11 @@ function applyLanguageToDOM(){
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
     el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{
+    const val = t(el.dataset.i18nTitle);
+    el.title = val;
+    if(el.hasAttribute("aria-label")) el.setAttribute("aria-label", val);
   });
 }
 
@@ -1120,6 +1189,7 @@ class SettingsManager{
       enterToSend:true, showTimestamps:true, saveConversations:true,
       language:"en",
       connectionMode:"local", apiUrl:"", apiKey:"", apiModel:"",
+      glassEffect:false,
       setupDone:false
     };
     this.data = Object.assign({}, this.defaults, this.storage.loadSettings() || {});
@@ -1674,14 +1744,14 @@ class UIManager{
       settingsBtn:$("settingsBtn"), themeToggleBtn:$("themeToggleBtn"), themeIcon:$("themeIcon"),
       chatScroll:$("chatScroll"), chatInner:$("chatInner"), chatTitleLabel:$("chatTitleLabel"), chatSubLabel:$("chatSubLabel"),
       personaPill:$("personaPill"), personaPillLabel:$("personaPillLabel"),
-      composerInput:$("composerInput"), sendBtn:$("sendBtn"), stopBtn:$("stopBtn"),
+      composerInput:$("composerInput"), sendBtn:$("sendBtn"), stopBtn:$("stopBtn"), enhanceBtn:$("enhanceBtn"),
       composerHint:$("composerHint"),
       offlineBanner:$("offlineBanner"),
       setupScreen:$("setupScreen"), setupGpuWarning:$("setupGpuWarning"), setupModelGrid:$("setupModelGrid"),
       setupProgressWrap:$("setupProgressWrap"), setupProgressFill:$("setupProgressFill"), setupProgressLabel:$("setupProgressLabel"), setupProgressNote:$("setupProgressNote"),
       setupDownloadBtn:$("setupDownloadBtn"), setupCancelBtn:$("setupCancelBtn"), setupSkipBtn:$("setupSkipBtn"),
       settingsOverlay:$("settingsOverlay"), closeSettingsBtn:$("closeSettingsBtn"),
-      themeSeg:$("themeSeg"), languageSeg:$("languageSeg"),
+      themeSeg:$("themeSeg"), languageSeg:$("languageSeg"), cfgGlassEffect:$("cfgGlassEffect"),
       connectionModeSeg:$("connectionModeSeg"), apiFieldsWrap:$("apiFieldsWrap"),
       cfgApiUrl:$("cfgApiUrl"), cfgApiKey:$("cfgApiKey"), cfgApiModel:$("cfgApiModel"),
       apiTutorialToggle:$("apiTutorialToggle"), apiTutorialWrap:$("apiTutorialWrap"), apiTutorialFrame:$("apiTutorialFrame"),
@@ -1713,6 +1783,7 @@ class UIManager{
     if(this.dom.themeSeg){
       this.dom.themeSeg.querySelectorAll("button").forEach(b=>b.classList.toggle("active", b.dataset.v===t));
     }
+    document.body.classList.toggle("glass-mode", !!this.settings.get("glassEffect"));
   }
   _syncLanguageUI(){
     if(this.dom.languageSeg){
@@ -1816,6 +1887,7 @@ class UIManager{
     });
     d.sendBtn.addEventListener("click", ()=> this.handleSend());
     d.stopBtn.addEventListener("click", ()=> this.stopGenerating());
+    d.enhanceBtn.addEventListener("click", ()=> this._enhancePrompt());
 
     // setup screen
     d.setupDownloadBtn.addEventListener("click", ()=> this._downloadAndStartSetup());
@@ -1858,6 +1930,7 @@ class UIManager{
     d.cfgEnterSend.addEventListener("change", ()=>{ this.settings.set("enterToSend", d.cfgEnterSend.checked); this._updateComposerHint(); });
     d.cfgTimestamps.addEventListener("change", ()=>{ this.settings.set("showTimestamps", d.cfgTimestamps.checked); this.renderConversation(); });
     d.cfgSaveConvos.addEventListener("change", ()=>{ this.settings.set("saveConversations", d.cfgSaveConvos.checked); });
+    d.cfgGlassEffect.addEventListener("change", ()=>{ this.settings.set("glassEffect", d.cfgGlassEffect.checked); this._applyTheme(); });
 
     d.clearHistoryBtn.addEventListener("click", ()=>{
       this.confirm("Clear conversation history?", "All conversations will be permanently deleted from this browser.", ()=>{
@@ -1899,6 +1972,7 @@ class UIManager{
   _updateSendEnabled(){
     const hasText = this.dom.composerInput.value.trim().length>0;
     this.dom.sendBtn.disabled = !hasText || this.isGenerating;
+    if(!this._enhancing) this.dom.enhanceBtn.disabled = !hasText || this.isGenerating;
   }
   _updateComposerHint(){
     this.dom.composerHint.textContent = this.settings.get("enterToSend")
@@ -2032,6 +2106,7 @@ class UIManager{
     d.cfgEnterSend.checked = !!s.get("enterToSend");
     d.cfgTimestamps.checked = !!s.get("showTimestamps");
     d.cfgSaveConvos.checked = !!s.get("saveConversations");
+    d.cfgGlassEffect.checked = !!s.get("glassEffect");
     d.cfgApiUrl.value = s.get("apiUrl")||"";
     d.cfgApiKey.value = s.get("apiKey")||"";
     d.cfgApiModel.value = s.get("apiModel")||"";
@@ -2396,6 +2471,50 @@ class UIManager{
     this._requestAssistantReply(convo.id);
   }
 
+  /** "Improve prompt" — rewrites the user's rough draft into a clearer, more
+   *  effective prompt using the currently active engine. This is a standalone
+   *  utility call: it does NOT touch conversation history, and its result
+   *  just replaces the composer's text for the user to review before sending. */
+  async _enhancePrompt(){
+    if(this.isGenerating || this._enhancing) return;
+    const draft = this.dom.composerInput.value.trim();
+    if(!draft) return;
+
+    const engine = this._activeEngine();
+    const usingApi = this.settings.get("connectionMode") === "api";
+    if(!usingApi && !this.api.gpuSupported()){
+      this.toast(t("enhanceNoEngine"), "error"); return;
+    }
+    if(!engine.isReady()){
+      this.toast(t("enhanceNoEngine"), "error"); return;
+    }
+
+    this._enhancing = true;
+    this.dom.enhanceBtn.classList.add("loading");
+    this.dom.enhanceBtn.disabled = true;
+
+    const enhancePrompt = "You are a prompt-improving assistant. The user will give you a short, rough instruction or request. Rewrite it into a clearer, more detailed, and more effective prompt for an AI assistant, in the SAME language the user wrote in. Preserve their original intent exactly (e.g. if they said 'write code' or 'write HTML', keep that request), but add helpful specificity — mention structure, edge cases, or detail level where it naturally helps. Return ONLY the improved prompt text itself. No explanation, no preamble, no quotation marks around it.";
+
+    try{
+      const improved = await engine.send([{role:"user", content:draft}], { systemPrompt: enhancePrompt });
+      const cleaned = stripThinking(improved).trim();
+      if(cleaned){
+        this.dom.composerInput.value = cleaned;
+        this.dom.composerInput.dispatchEvent(new Event("input"));
+        this.dom.composerInput.focus();
+      } else {
+        this.toast(t("enhanceEmpty"), "error");
+      }
+    }catch(e){
+      const { title, detail } = this._describeError(e);
+      this.toast(title+": "+detail, "error");
+    }finally{
+      this._enhancing = false;
+      this.dom.enhanceBtn.classList.remove("loading");
+      this.dom.enhanceBtn.disabled = false;
+    }
+  }
+
   stopGenerating(){
     this._activeEngine().abort();
   }
@@ -2436,8 +2555,16 @@ class UIManager{
         systemPrompt: this.settings.effectiveSystemPrompt(),
         onChunk: (delta, fullSoFar) => {
           const visible = stripThinking(fullSoFar);
-          this.chat.updateMessage(convoId, placeholder.id, {content: visible});
-          this._patchStreamingMessage(placeholder.id, visible);
+          if(visible){
+            this.chat.updateMessage(convoId, placeholder.id, {content: visible});
+            this._patchStreamingMessage(placeholder.id, visible);
+          } else if(/<think>/i.test(fullSoFar)){
+            // Model is still inside a hidden reasoning block — show a live
+            // "thinking" indicator instead of leaving the bubble blank.
+            this._patchThinkingIndicator(placeholder.id);
+          }
+          // else: nothing visible yet and no thinking block seen — leave the
+          // initial typing-dots (set by renderConversation) alone.
         }
       });
       const visibleFull = stripThinking(full);
@@ -2464,6 +2591,14 @@ class UIManager{
     const el = this.dom.chatInner.querySelector(`.msg[data-id="${msgId}"] .msg-content`);
     if(el){ el.classList.add("streaming"); el.innerHTML = Markdown.render(text); }
     else { this.renderConversation(); }
+    this._scrollToBottom();
+  }
+  _patchThinkingIndicator(msgId){
+    const el = this.dom.chatInner.querySelector(`.msg[data-id="${msgId}"] .msg-content`);
+    if(el){
+      el.classList.remove("streaming");
+      el.innerHTML = `<span class="thinking-wrap"><span class="typing-dots"><span></span><span></span><span></span></span><span class="thinking-label">${escapeHtml(t("thinkingIndicator"))}</span></span>`;
+    }
     this._scrollToBottom();
   }
 
