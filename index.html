@@ -373,6 +373,10 @@ input,textarea,select{font-family:inherit;}
 .msg-actions button:hover{background:var(--surface-hover);color:var(--text-0);}
 .msg-actions svg{width:14.5px;height:14.5px;}
 .msg-actions .flash{color:var(--success);}
+.msg-actions:has(button.speaking){opacity:1;}
+.msg-actions button.speaking{color:var(--accent-1);}
+.msg-actions button.speaking svg{animation:speakPulse 1s ease-in-out infinite;}
+@keyframes speakPulse{0%,100%{opacity:1;}50%{opacity:.5;}}
 
 .edit-box textarea{
   width:100%;background:var(--surface);border:1px solid var(--accent-1);border-radius:12px;color:var(--text-0);
@@ -619,49 +623,101 @@ input[type="range"]{width:100%;accent-color:var(--accent-1);}
 }
 
 /* ============================================================
-   Liquid Glass mode — optional translucent/frosted-glass look,
-   toggled independently of light/dark from Settings → Appearance.
+   Liquid Glass mode — optional translucent/frosted-glass look
+   (inspired by Apple's Liquid Glass), toggled independently of
+   light/dark from Settings → Appearance.
    ============================================================ */
 body.glass-mode{
   background-image:
-    radial-gradient(900px 600px at 10% -10%, rgba(124,92,255,0.20), transparent 55%),
-    radial-gradient(800px 550px at 100% 15%, rgba(34,211,238,0.16), transparent 55%),
-    radial-gradient(700px 500px at 30% 110%, rgba(124,92,255,0.10), transparent 55%);
+    radial-gradient(1000px 650px at 8% -12%, rgba(124,92,255,0.32), transparent 55%),
+    radial-gradient(900px 600px at 100% 8%, rgba(34,211,238,0.26), transparent 55%),
+    radial-gradient(800px 550px at 25% 115%, rgba(124,92,255,0.20), transparent 55%),
+    radial-gradient(700px 500px at 90% 100%, rgba(34,211,238,0.16), transparent 55%);
   background-attachment:fixed;
 }
 body.glass-mode .app{ background:transparent; }
+body.glass-mode .main{ background:transparent !important; }
+body.glass-mode .topbar{ background:transparent !important; }
+
+/* Every glass surface shares one recipe: a real tinted "material" base
+   (so text always has a stable backdrop to sit on, not just raw blur)
+   layered under a soft diagonal sheen, then blurred + saturated. This is
+   what makes it read as glass instead of just "fuzzy" — same principle
+   Apple's Liquid Glass uses. */
 body.glass-mode .sidebar,
 body.glass-mode .composer,
 body.glass-mode .modal,
 body.glass-mode .settings-panel,
-body.glass-mode .settings-card{
-  background:rgba(255,255,255,0.07) !important;
-  -webkit-backdrop-filter:blur(22px) saturate(180%);
-  backdrop-filter:blur(22px) saturate(180%);
-  border:1px solid rgba(255,255,255,0.16) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.14), 0 12px 40px rgba(0,0,0,0.28) !important;
+body.glass-mode .settings-card,
+body.glass-mode .setup-card,
+body.glass-mode .chat-item,
+body.glass-mode .suggestion-card,
+body.glass-mode .model-tier-card,
+body.glass-mode .persona-card,
+body.glass-mode .box,
+body.glass-mode .msg-content,
+body.glass-mode .toast,
+body.glass-mode .empty-orb,
+body.glass-mode .field input,
+body.glass-mode .field textarea,
+body.glass-mode .field select,
+body.glass-mode .settings-textarea,
+body.glass-mode select,
+body.glass-mode input[type="text"],
+body.glass-mode input[type="password"],
+body.glass-mode input[type="number"],
+body.glass-mode input[type="search"],
+body.glass-mode #composerBox{
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.07) 100%),
+    rgba(18,20,32,0.52) !important;
+  -webkit-backdrop-filter:blur(26px) saturate(190%);
+  backdrop-filter:blur(26px) saturate(190%);
+  border:1px solid rgba(255,255,255,0.22) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    inset 0 -1px 10px rgba(0,0,0,0.18),
+    0 14px 42px rgba(0,0,0,0.30) !important;
 }
 body[data-theme="light"].glass-mode .sidebar,
 body[data-theme="light"].glass-mode .composer,
 body[data-theme="light"].glass-mode .modal,
 body[data-theme="light"].glass-mode .settings-panel,
-body[data-theme="light"].glass-mode .settings-card{
-  background:rgba(255,255,255,0.45) !important;
-  border:1px solid rgba(255,255,255,0.55) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), 0 12px 40px rgba(20,22,40,0.10) !important;
+body[data-theme="light"].glass-mode .settings-card,
+body[data-theme="light"].glass-mode .setup-card,
+body[data-theme="light"].glass-mode .chat-item,
+body[data-theme="light"].glass-mode .suggestion-card,
+body[data-theme="light"].glass-mode .model-tier-card,
+body[data-theme="light"].glass-mode .persona-card,
+body[data-theme="light"].glass-mode .box,
+body[data-theme="light"].glass-mode .msg-content,
+body[data-theme="light"].glass-mode .toast,
+body[data-theme="light"].glass-mode .field input,
+body[data-theme="light"].glass-mode .field textarea,
+body[data-theme="light"].glass-mode .field select,
+body[data-theme="light"].glass-mode .settings-textarea,
+body[data-theme="light"].glass-mode select,
+body[data-theme="light"].glass-mode input[type="text"],
+body[data-theme="light"].glass-mode input[type="password"],
+body[data-theme="light"].glass-mode input[type="number"],
+body[data-theme="light"].glass-mode input[type="search"],
+body[data-theme="light"].glass-mode #composerBox{
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.35) 45%, rgba(255,255,255,0.55) 100%),
+    rgba(255,255,255,0.42) !important;
+  border:1px solid rgba(255,255,255,0.65) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.8),
+    inset 0 -1px 8px rgba(20,22,40,0.05),
+    0 14px 42px rgba(20,22,40,0.12) !important;
 }
-body.glass-mode .settings-panel{ border-left:1px solid rgba(255,255,255,0.16) !important; }
-body.glass-mode .main{ background:transparent !important; }
-body.glass-mode .topbar{ background:transparent !important; }
-body.glass-mode .chat-item.active,
-body.glass-mode .suggestion-card,
-body.glass-mode .model-tier-card,
-body.glass-mode .persona-card,
-body.glass-mode .box{
-  -webkit-backdrop-filter:blur(14px);
-  backdrop-filter:blur(14px);
-  background:rgba(255,255,255,0.06) !important;
-}
+body.glass-mode .settings-panel{ border-left:1px solid rgba(255,255,255,0.2) !important; }
+/* Message text sits directly on the tinted glass now, not on nothing —
+   this is the actual fix for unreadable text: a stable base tint under
+   the blur means contrast no longer depends on whatever gradient blob
+   happens to be behind it. */
+body.glass-mode .msg-content{ padding:10px 14px !important; border-radius:14px !important; }
+
 </style>
 </head>
 <body data-theme="dark">
@@ -904,6 +960,16 @@ body.glass-mode .box{
       </section>
 
       <section class="settings-section">
+        <h3 data-i18n="memoryHeader">Memory</h3>
+        <div class="settings-row">
+          <div><div class="settings-row-label" data-i18n="memoryEnabled">Remember across chats</div><div class="settings-row-desc" data-i18n="memoryEnabledDesc">Best-effort — the model pulls out a few lasting facts when you leave a conversation and recalls them in future ones</div></div>
+          <label class="toggle"><input type="checkbox" id="cfgMemoryEnabled"><span class="track"></span><span class="thumb"></span></label>
+        </div>
+        <div class="settings-row-desc" id="cfgMemoryCount" style="margin:8px 0;">0 memories saved</div>
+        <button class="btn btn-block" id="cfgClearMemoryBtn" data-i18n="clearMemory">Clear memory</button>
+      </section>
+
+      <section class="settings-section">
         <h3 data-i18n="privacyHeader">Privacy</h3>
         <div class="settings-row-desc" style="margin-bottom:10px;" data-i18n="privacyDesc">All data — conversations, settings, and the model itself — lives only in this browser. Nothing is ever sent to a server.</div>
         <button class="btn btn-block" id="clearHistoryBtn" style="margin-bottom:8px;" data-i18n="clearHistory">Clear conversation history</button>
@@ -1006,6 +1072,9 @@ const I18N = {
     localModelHint:"The model runs fully on-device via WebGPU. Nothing is ever sent to a server — everything, including the model weights cache, stays in this browser.",
     personalityHeader:"Personality", customInstructions:"Custom system instructions", customInstructionsPlaceholder:"Overrides the selected personality if filled in…",
     chatHeader:"Chat", enterToSend:"Enter to send", showTimestamps:"Show timestamps", saveConversations:"Save conversations",
+    memoryHeader:"Memory", memoryEnabled:"Remember across chats", memoryEnabledDesc:"Best-effort — the model pulls out a few lasting facts when you leave a conversation and recalls them in future ones",
+    memoryCountZero:"0 memories saved", memoryCountSuffix:"memories saved", clearMemory:"Clear memory",
+    clearMemoryTitle:"Clear memory?", clearMemoryBody:"All remembered facts from past conversations will be permanently deleted. This cannot be undone.", memoryCleared:"Memory cleared",
     privacyHeader:"Privacy", privacyDesc:"All data — conversations, settings, and the model itself — lives only in this browser. Nothing is ever sent to a server.",
     clearHistory:"Clear conversation history", clearAllData:"Clear all local data",
     aboutHeader:"About", aboutDesc:"Shayan AI — a fully independent, on-device AI assistant created by Shayan Ramezani. It runs its own model locally via WebGPU (WebLLM). No API, no key, no backend, no internet needed after the first download.",
@@ -1013,6 +1082,7 @@ const I18N = {
     loadingModelShort:"loading model…", noModelLoadedShort:"no model loaded", notConnectedShort:"not connected",
     thinkingIndicator:"Thinking…",
     enhanceTitle:"Improve prompt", enhanceNoEngine:"No model or API is ready yet — set one up first.", enhanceEmpty:"Couldn't improve that — try again.",
+    readAloud:"Read aloud", ttsUnsupported:"Reading aloud isn't supported in this browser.", ttsNoPersianVoice:"No Persian voice found on this device — using the default voice instead, so pronunciation may be off.",
     tierLabel_fast:"Fast & Light", tierLabel_balanced:"Balanced", tierLabel_power:"Max Power", tierLabel_persian:"Persian+ (Gemma2)",
     tierMeta_fast:"~1 GB · quickest", tierMeta_balanced:"~2 GB · recommended", tierMeta_power:"~4-5 GB · needs a strong device", tierMeta_persian:"~5-6 GB · best Persian in benchmarks",
     tierDesc_fast:"Quickest to start, good for simple chats", tierDesc_balanced:"Great everyday quality and speed", tierDesc_power:"The smartest, most capable option", tierDesc_persian:"Google's Gemma2 — scored highest on published Persian-language benchmarks (NLI, reasoning, QA) among open models tested",
@@ -1059,6 +1129,9 @@ const I18N = {
     localModelHint:"مدل کاملاً روی خود دستگاه با WebGPU اجرا می‌شه. هیچی هیچ‌وقت به سروری فرستاده نمی‌شه — همه‌چیز، حتی کش وزن‌های مدل، همینجا توی مرورگر می‌مونه.",
     personalityHeader:"شخصیت", customInstructions:"دستور سیستمی سفارشی", customInstructionsPlaceholder:"اگه پر بشه، جای شخصیت انتخاب‌شده رو می‌گیره…",
     chatHeader:"چت", enterToSend:"ارسال با Enter", showTimestamps:"نمایش زمان پیام‌ها", saveConversations:"ذخیره‌ی گفتگوها",
+    memoryHeader:"حافظه", memoryEnabled:"یادآوری بین چت‌ها", memoryEnabledDesc:"تلاش بهترین‌حالت — وقتی از یه گفتگو خارج می‌شی، مدل چندتا واقعیت ماندگار ازش استخراج می‌کنه و تو گفتگوهای بعدی یادش می‌مونه",
+    memoryCountZero:"هیچ حافظه‌ای ذخیره نشده", memoryCountSuffix:"حافظه ذخیره شده", clearMemory:"پاک‌کردن حافظه",
+    clearMemoryTitle:"حافظه پاک بشه؟", clearMemoryBody:"همه‌ی واقعیت‌های به‌خاطرسپرده‌شده از گفتگوهای قبلی برای همیشه پاک می‌شن. این کار برگشت‌پذیر نیست.", memoryCleared:"حافظه پاک شد",
     privacyHeader:"حریم خصوصی", privacyDesc:"همه‌چیز — گفتگوها، تنظیمات و خود مدل — فقط توی همین مرورگر می‌مونه. هیچی به هیچ سروری فرستاده نمی‌شه.",
     clearHistory:"پاک‌کردن تاریخچه‌ی گفتگوها", clearAllData:"پاک‌کردن همه‌ی داده‌های محلی",
     aboutHeader:"درباره", aboutDesc:"Shayan AI — یک دستیار هوش مصنوعی کاملاً مستقل و روی‌دستگاه که Shayan Ramezani ساختتش. مدل خودش رو محلی با WebGPU (از طریق WebLLM) اجرا می‌کنه. بدون API، بدون کلید، بدون بک‌اند، بعد از اولین دانلود به اینترنت هم نیاز نداره.",
@@ -1066,6 +1139,7 @@ const I18N = {
     loadingModelShort:"در حال بارگذاری مدل…", noModelLoadedShort:"مدلی بارگذاری نشده", notConnectedShort:"وصل نیست",
     thinkingIndicator:"در حال فکر کردن…",
     enhanceTitle:"بهتر کردن پرامپت", enhanceNoEngine:"هنوز مدلی یا APIای آماده نیست — اول یکی رو تنظیم کن.", enhanceEmpty:"نشد بهترش کنم — دوباره امتحان کن.",
+    readAloud:"خواندن با صدای بلند", ttsUnsupported:"این مرورگر از خواندن با صدای بلند پشتیبانی نمی‌کنه.", ttsNoPersianVoice:"صدای فارسی روی این دستگاه پیدا نشد — با صدای پیش‌فرض می‌خونه، پس ممکنه تلفظش کامل درست نباشه.",
     tierLabel_fast:"سریع و سبک", tierLabel_balanced:"متعادل", tierLabel_power:"قدرت بالا", tierLabel_persian:"فارسی+ (Gemma2)",
     tierMeta_fast:"~۱ گیگابایت · سریع‌ترین", tierMeta_balanced:"~۲ گیگابایت · پیشنهادی", tierMeta_power:"~۴-۵ گیگابایت · نیاز به دستگاه قوی", tierMeta_persian:"~۵-۶ گیگابایت · بهترین فارسی طبق بنچمارک",
     tierDesc_fast:"سریع‌ترین برای شروع، مناسب چت‌های ساده", tierDesc_balanced:"تعادل خوب بین کیفیت و سرعت", tierDesc_power:"باهوش‌ترین و تواناترین گزینه", tierDesc_persian:"مدل Gemma2 گوگل — طبق یه بنچمارک منتشرشده، بین مدل‌های تست‌شده بالاترین امتیاز رو تو فارسی (NLI، استدلال، QA) گرفته",
@@ -1105,7 +1179,7 @@ function applyLanguageToDOM(){
   });
 }
 
-const IDENTITY_PROMPT = "Your name is \"Shayan AI\" — always write it exactly like that, in Latin letters, even in an otherwise Persian sentence (never \"شایان\", never mixed like \"شayan\"). You are an independent AI assistant created by Mr. Ramezani. When speaking Persian, write his name exactly as \"آقای رمضانی\" — never as \"رامزیانی\" or any other spelling/pronunciation guess; when speaking English, write it exactly as \"Mr. Ramezani\". You are not made by OpenAI, Anthropic, Google, Meta, or any other AI company, and you never volunteer what underlying model or company your weights are based on. You do not currently have voice input/output or the ability to read uploaded files or images — if the user asks you to listen, speak, or look at something they attached, just say plainly that you don't have that capability yet and ask them to paste the text instead. Always reply in the same language the user's latest message is written in, even for a short word — reply in English for English (e.g. \"hi\" → reply in English), and in natural, everyday standard Iranian Persian for Persian (not Dari/Afghan Persian). Don't mix the two languages in one reply. For any math or calculation question, think through the steps before giving the final answer, and double-check it.";
+const IDENTITY_PROMPT = "Your name is \"Shayan AI\" — always write it exactly like that, in Latin letters, even in an otherwise Persian sentence (never \"شایان\", never mixed like \"شayan\"). You are an independent AI assistant created by Mr. Ramezani. When speaking Persian, write his name exactly as \"آقای رمضانی\" — never as \"رامزیانی\" or any other spelling/pronunciation guess; when speaking English, write it exactly as \"Mr. Ramezani\". You are not made by OpenAI, Anthropic, Google, Meta, or any other AI company, and you never volunteer what underlying model or company your weights are based on. You cannot listen to audio or hear the user, and you cannot generate spoken audio yourself, and you still cannot receive, read, or process any uploaded file or image. The app does have a separate \"read aloud\" button next to each of your messages that uses the browser's own text-to-speech to read your text out loud on request — you can mention that button exists if it's relevant, but you personally are not speaking or listening. If the user asks you to listen to something or look at a file/image they attached, say plainly you can't do that and ask them to paste the text instead. Always reply in the same language the user's latest message is written in, even for a short word — reply in English for English (e.g. \"hi\" → reply in English), and in natural, everyday standard Iranian Persian for Persian (not Dari/Afghan Persian). Don't mix the two languages in one reply. For any math or calculation question, think through the steps before giving the final answer, and double-check it.";
 
 const PERSONAS = {
   general:   { name:"General Assistant", desc:"Helpful, balanced, and clear.", prompt:"You are a helpful, friendly, and knowledgeable general-purpose assistant. Be clear, concise, and accurate." },
@@ -1145,7 +1219,7 @@ const fmtDay = (iso) => {
    ============================================================ */
 class StorageManager{
   constructor(){
-    this.keys = { conversations:"shayan_conversations", settings:"shayan_settings", version:"shayan_version" };
+    this.keys = { conversations:"shayan_conversations", settings:"shayan_settings", version:"shayan_version", memories:"shayan_memories" };
     this.available = this._check();
   }
   _check(){
@@ -1173,6 +1247,17 @@ class StorageManager{
     catch(e){ console.error("Settings save failed", e); return false; }
   }
   clearConversations(){ try{ localStorage.removeItem(this.keys.conversations); }catch(e){} }
+  loadMemories(){
+    if(!this.available) return [];
+    try{ return JSON.parse(localStorage.getItem(this.keys.memories)) || []; }
+    catch(e){ return []; }
+  }
+  saveMemories(list){
+    if(!this.available) return false;
+    try{ localStorage.setItem(this.keys.memories, JSON.stringify(list)); return true; }
+    catch(e){ console.error("Memory save failed", e); return false; }
+  }
+  clearMemories(){ try{ localStorage.removeItem(this.keys.memories); }catch(e){} }
   clearAll(){ try{ localStorage.clear(); }catch(e){} }
 }
 
@@ -1190,6 +1275,7 @@ class SettingsManager{
       language:"en",
       connectionMode:"local", apiUrl:"", apiKey:"", apiModel:"",
       glassEffect:false,
+      memoryEnabled:false,
       setupDone:false
     };
     this.data = Object.assign({}, this.defaults, this.storage.loadSettings() || {});
@@ -1204,7 +1290,14 @@ class SettingsManager{
     const modeNote = this.data.connectionMode === "api"
       ? " You are currently connected through an API backend configured by the user (not running on-device this time) — this doesn't change who you are or your other rules."
       : " You run entirely on-device in the user's browser with no cloud API.";
-    return IDENTITY_PROMPT + modeNote + "\n\n" + base;
+    let memoryBlock = "";
+    if(this.data.memoryEnabled){
+      const memories = this.storage.loadMemories();
+      if(memories.length){
+        memoryBlock = "\n\nRemembered context from earlier conversations with this user (use naturally where relevant, don't recite it verbatim unless asked):\n" + memories.map(m=>"- "+m).join("\n");
+      }
+    }
+    return IDENTITY_PROMPT + modeNote + memoryBlock + "\n\n" + base;
   }
 }
 
@@ -1752,6 +1845,7 @@ class UIManager{
       setupDownloadBtn:$("setupDownloadBtn"), setupCancelBtn:$("setupCancelBtn"), setupSkipBtn:$("setupSkipBtn"),
       settingsOverlay:$("settingsOverlay"), closeSettingsBtn:$("closeSettingsBtn"),
       themeSeg:$("themeSeg"), languageSeg:$("languageSeg"), cfgGlassEffect:$("cfgGlassEffect"),
+      cfgMemoryEnabled:$("cfgMemoryEnabled"), cfgMemoryCount:$("cfgMemoryCount"), cfgClearMemoryBtn:$("cfgClearMemoryBtn"),
       connectionModeSeg:$("connectionModeSeg"), apiFieldsWrap:$("apiFieldsWrap"),
       cfgApiUrl:$("cfgApiUrl"), cfgApiKey:$("cfgApiKey"), cfgApiModel:$("cfgApiModel"),
       apiTutorialToggle:$("apiTutorialToggle"), apiTutorialWrap:$("apiTutorialWrap"), apiTutorialFrame:$("apiTutorialFrame"),
@@ -1822,9 +1916,11 @@ class UIManager{
     d.drawerBackdrop.addEventListener("click", ()=> this._toggleDrawer(false));
 
     d.newChatBtn.addEventListener("click", ()=>{
+      const prevConvo = this.chat.active();
       this.chat.create(); this.renderHistory(); this.renderConversation();
       this._toggleDrawer(false);
       d.composerInput.focus();
+      this._maybeExtractMemory(prevConvo);
     });
 
     let searchDebounce;
@@ -1931,6 +2027,14 @@ class UIManager{
     d.cfgTimestamps.addEventListener("change", ()=>{ this.settings.set("showTimestamps", d.cfgTimestamps.checked); this.renderConversation(); });
     d.cfgSaveConvos.addEventListener("change", ()=>{ this.settings.set("saveConversations", d.cfgSaveConvos.checked); });
     d.cfgGlassEffect.addEventListener("change", ()=>{ this.settings.set("glassEffect", d.cfgGlassEffect.checked); this._applyTheme(); });
+    d.cfgMemoryEnabled.addEventListener("change", ()=>{ this.settings.set("memoryEnabled", d.cfgMemoryEnabled.checked); });
+    d.cfgClearMemoryBtn.addEventListener("click", ()=>{
+      this.confirm(t("clearMemoryTitle"), t("clearMemoryBody"), ()=>{
+        this.storage.clearMemories();
+        this._updateMemoryCount();
+        this.toast(t("memoryCleared"), "success");
+      });
+    });
 
     d.clearHistoryBtn.addEventListener("click", ()=>{
       this.confirm("Clear conversation history?", "All conversations will be permanently deleted from this browser.", ()=>{
@@ -1957,7 +2061,7 @@ class UIManager{
     window.addEventListener("offline", ()=> this._checkOnlineState());
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ()=>{ if(this.settings.get("theme")==="system") this._applyTheme(); });
 
-    window.addEventListener("beforeunload", ()=>{ this.api.abort(); this.apiEngine.abort(); });
+    window.addEventListener("beforeunload", ()=>{ this.api.abort(); this.apiEngine.abort(); if("speechSynthesis" in window) speechSynthesis.cancel(); });
   }
 
   _toggleDrawer(open){
@@ -1971,7 +2075,7 @@ class UIManager{
 
   _updateSendEnabled(){
     const hasText = this.dom.composerInput.value.trim().length>0;
-    this.dom.sendBtn.disabled = !hasText || this.isGenerating;
+    this.dom.sendBtn.disabled = !hasText || this.isGenerating || this._enhancing;
     if(!this._enhancing) this.dom.enhanceBtn.disabled = !hasText || this.isGenerating;
   }
   _updateComposerHint(){
@@ -2107,6 +2211,8 @@ class UIManager{
     d.cfgTimestamps.checked = !!s.get("showTimestamps");
     d.cfgSaveConvos.checked = !!s.get("saveConversations");
     d.cfgGlassEffect.checked = !!s.get("glassEffect");
+    d.cfgMemoryEnabled.checked = !!s.get("memoryEnabled");
+    this._updateMemoryCount();
     d.cfgApiUrl.value = s.get("apiUrl")||"";
     d.cfgApiKey.value = s.get("apiKey")||"";
     d.cfgApiModel.value = s.get("apiModel")||"";
@@ -2239,9 +2345,11 @@ class UIManager{
       if(action==="delete") this._deleteConvo(id);
       return;
     }
+    const prevConvo = this.chat.active();
     this.chat.setActive(id);
     this.renderHistory(); this.renderConversation();
     this._toggleDrawer(false);
+    if(prevConvo && prevConvo.id !== id) this._maybeExtractMemory(prevConvo);
   }
   _startRename(item, id){
     const c = this.chat.get(id); if(!c) return;
@@ -2367,7 +2475,8 @@ class UIManager{
         } else {
           actions.innerHTML = `
             <button data-action="copy" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
-            <button data-action="regenerate" title="Regenerate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.6 5.6L1 10m22 4l-4.6 4.4A9 9 0 013.51 15"/></svg></button>`;
+            <button data-action="regenerate" title="Regenerate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.6 5.6L1 10m22 4l-4.6 4.4A9 9 0 013.51 15"/></svg></button>
+            <button data-action="speak" title="Read aloud" data-i18n-title="readAloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg></button>`;
         }
         body.appendChild(actions);
       }
@@ -2419,6 +2528,50 @@ class UIManager{
       this.renderConversation();
       this._requestAssistantReply(convo.id);
     }
+    else if(action==="speak"){ this._toggleSpeak(msgId, m?.content||"", actionBtn); }
+  }
+
+  /* ---------- Read aloud (text-to-speech output only — no voice input) ---------- */
+  _toggleSpeak(msgId, rawText, btnEl){
+    if(!("speechSynthesis" in window)){
+      this.toast(t("ttsUnsupported"), "error");
+      return;
+    }
+    if(this._speakingMsgId === msgId){
+      speechSynthesis.cancel();
+      this._speakingMsgId = null;
+      this._updateSpeakButtons();
+      return;
+    }
+    speechSynthesis.cancel();
+    const clean = (rawText||"")
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/`[^`]*`/g, " ")
+      .replace(/[#*_>~]/g, "")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+      .trim();
+    if(!clean) return;
+    const isPersian = /[\u0600-\u06FF]/.test(clean);
+    const voices = speechSynthesis.getVoices();
+    const voice = isPersian
+      ? (voices.find(v=>/^fa/i.test(v.lang)) || voices.find(v=>/persian|farsi/i.test(v.name||"")))
+      : (voices.find(v=>/^en/i.test(v.lang)));
+    const utter = new SpeechSynthesisUtterance(clean);
+    if(voice) utter.voice = voice;
+    utter.lang = voice ? voice.lang : (isPersian ? "fa-IR" : "en-US");
+    utter.rate = 1;
+    utter.onend = () => { this._speakingMsgId = null; this._updateSpeakButtons(); };
+    utter.onerror = () => { this._speakingMsgId = null; this._updateSpeakButtons(); };
+    this._speakingMsgId = msgId;
+    speechSynthesis.speak(utter);
+    this._updateSpeakButtons();
+    if(isPersian && !voice){ this.toast(t("ttsNoPersianVoice")); }
+  }
+  _updateSpeakButtons(){
+    this.dom.chatInner.querySelectorAll('[data-action="speak"]').forEach(btn=>{
+      const msgEl = btn.closest(".msg");
+      btn.classList.toggle("speaking", !!(msgEl && msgEl.dataset.id === this._speakingMsgId));
+    });
   }
 
   _nextMessageId(convo, msgId){
@@ -2457,9 +2610,11 @@ class UIManager{
 
   /* ---------- Sending / receiving ---------- */
   handleSend(){
-    if(this.isGenerating) return;
+    if(this.isGenerating || this._enhancing) return;
     const text = this.dom.composerInput.value.trim();
     if(!text) return;
+    if("speechSynthesis" in window) speechSynthesis.cancel();
+    this._speakingMsgId = null;
 
     const convo = this.chat.ensureActive();
     this.chat.addMessage(convo.id, { role:"user", content:text });
@@ -2492,6 +2647,7 @@ class UIManager{
     this._enhancing = true;
     this.dom.enhanceBtn.classList.add("loading");
     this.dom.enhanceBtn.disabled = true;
+    this._updateSendEnabled();
 
     const enhancePrompt = "You are a prompt-improving assistant. The user will give you a short, rough instruction or request. Rewrite it into a clearer, more detailed, and more effective prompt for an AI assistant, in the SAME language the user wrote in. Preserve their original intent exactly (e.g. if they said 'write code' or 'write HTML', keep that request), but add helpful specificity — mention structure, edge cases, or detail level where it naturally helps. Return ONLY the improved prompt text itself. No explanation, no preamble, no quotation marks around it.";
 
@@ -2512,7 +2668,40 @@ class UIManager{
       this._enhancing = false;
       this.dom.enhanceBtn.classList.remove("loading");
       this.dom.enhanceBtn.disabled = false;
+      this._updateSendEnabled();
     }
+  }
+
+  /** Best-effort cross-conversation memory: when leaving a conversation that
+   *  had real back-and-forth, ask the model to pull out a few lasting facts
+   *  worth remembering, and store them for future conversations. Opt-in via
+   *  Settings, silent on failure (never blocks the UI or shows an error). */
+  async _maybeExtractMemory(convo){
+    if(!this.settings.get("memoryEnabled")) return;
+    if(!convo || !convo.messages) return;
+    const substantive = convo.messages.filter(m => (m.role==="user"||m.role==="assistant") && m.content && m.status!=="error");
+    if(substantive.length < 2) return;
+    const engine = this._activeEngine();
+    if(!engine.isReady()) return;
+
+    const transcript = substantive.slice(-14).map(m=>`${m.role}: ${m.content}`).join("\n").slice(0, 4000);
+    const extractPrompt = "Extract only lasting, useful facts about the user from this conversation — things like their name, preferences, ongoing projects, or important recurring context. Write them as a short bullet list (at most 5 bullets), in the SAME language the conversation was in. If there is nothing worth remembering long-term, reply with exactly: NONE";
+    try{
+      const result = await engine.send([{role:"user", content:transcript}], { systemPrompt: extractPrompt });
+      const cleaned = stripThinking(result).trim();
+      if(!cleaned || cleaned.toUpperCase().startsWith("NONE")) return;
+      const lines = cleaned.split("\n").map(l=>l.replace(/^[-•*\d.]+\s*/,"").trim()).filter(Boolean);
+      if(!lines.length) return;
+      const existing = this.storage.loadMemories();
+      const merged = existing.concat(lines).slice(-30);
+      this.storage.saveMemories(merged);
+      this._updateMemoryCount();
+    }catch(e){ /* best-effort — never surface an error for this */ }
+  }
+  _updateMemoryCount(){
+    if(!this.dom.cfgMemoryCount) return;
+    const n = this.storage.loadMemories().length;
+    this.dom.cfgMemoryCount.textContent = n===0 ? t("memoryCountZero") : (n + " " + t("memoryCountSuffix"));
   }
 
   stopGenerating(){
