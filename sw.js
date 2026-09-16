@@ -1,4 +1,4 @@
-const SHELL_CACHE = "shayan-ai-shell-v3";
+const SHELL_CACHE = "shayan-ai-shell-v4";
 const SHELL_FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {

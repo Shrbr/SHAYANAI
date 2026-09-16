@@ -2075,7 +2075,7 @@ class UIManager{
 
   _updateSendEnabled(){
     const hasText = this.dom.composerInput.value.trim().length>0;
-    this.dom.sendBtn.disabled = !hasText || this.isGenerating || this._enhancing;
+    this.dom.sendBtn.disabled = !hasText || this.isGenerating;
     if(!this._enhancing) this.dom.enhanceBtn.disabled = !hasText || this.isGenerating;
   }
   _updateComposerHint(){
@@ -2532,7 +2532,23 @@ class UIManager{
   }
 
   /* ---------- Read aloud (text-to-speech output only — no voice input) ---------- */
-  _toggleSpeak(msgId, rawText, btnEl){
+  /** speechSynthesis.getVoices() notoriously returns an empty list on the
+   *  very first call in many browsers — voices load asynchronously. This
+   *  waits for them (via the voiceschanged event) instead of silently
+   *  falling back to whatever the browser's default voice happens to be,
+   *  which was why Persian text was being read with the wrong voice. */
+  _getVoicesAsync(){
+    return new Promise((resolve)=>{
+      const existing = speechSynthesis.getVoices();
+      if(existing && existing.length){ resolve(existing); return; }
+      let resolved = false;
+      const done = (v) => { if(resolved) return; resolved = true; resolve(v); };
+      speechSynthesis.onvoiceschanged = () => done(speechSynthesis.getVoices());
+      // Some browsers never fire voiceschanged reliably — don't hang forever.
+      setTimeout(()=> done(speechSynthesis.getVoices()), 800);
+    });
+  }
+  async _toggleSpeak(msgId, rawText, btnEl){
     if(!("speechSynthesis" in window)){
       this.toast(t("ttsUnsupported"), "error");
       return;
@@ -2540,10 +2556,13 @@ class UIManager{
     if(this._speakingMsgId === msgId){
       speechSynthesis.cancel();
       this._speakingMsgId = null;
+      this._speakToken = (this._speakToken||0) + 1;
       this._updateSpeakButtons();
       return;
     }
     speechSynthesis.cancel();
+    this._speakingMsgId = null;
+    const myToken = (this._speakToken = (this._speakToken||0) + 1);
     const clean = (rawText||"")
       .replace(/```[\s\S]*?```/g, " ")
       .replace(/`[^`]*`/g, " ")
@@ -2552,7 +2571,10 @@ class UIManager{
       .trim();
     if(!clean) return;
     const isPersian = /[\u0600-\u06FF]/.test(clean);
-    const voices = speechSynthesis.getVoices();
+    const voices = await this._getVoicesAsync();
+    // If the user clicked stop, or a different message, while we were
+    // waiting on the voice list, don't start speaking out from under them.
+    if(this._speakToken !== myToken) return;
     const voice = isPersian
       ? (voices.find(v=>/^fa/i.test(v.lang)) || voices.find(v=>/persian|farsi/i.test(v.name||"")))
       : (voices.find(v=>/^en/i.test(v.lang)));
@@ -2610,7 +2632,7 @@ class UIManager{
 
   /* ---------- Sending / receiving ---------- */
   handleSend(){
-    if(this.isGenerating || this._enhancing) return;
+    if(this.isGenerating) return;
     const text = this.dom.composerInput.value.trim();
     if(!text) return;
     if("speechSynthesis" in window) speechSynthesis.cancel();
@@ -2647,7 +2669,6 @@ class UIManager{
     this._enhancing = true;
     this.dom.enhanceBtn.classList.add("loading");
     this.dom.enhanceBtn.disabled = true;
-    this._updateSendEnabled();
 
     const enhancePrompt = "You are a prompt-improving assistant. The user will give you a short, rough instruction or request. Rewrite it into a clearer, more detailed, and more effective prompt for an AI assistant, in the SAME language the user wrote in. Preserve their original intent exactly (e.g. if they said 'write code' or 'write HTML', keep that request), but add helpful specificity — mention structure, edge cases, or detail level where it naturally helps. Return ONLY the improved prompt text itself. No explanation, no preamble, no quotation marks around it.";
 
@@ -2668,7 +2689,6 @@ class UIManager{
       this._enhancing = false;
       this.dom.enhanceBtn.classList.remove("loading");
       this.dom.enhanceBtn.disabled = false;
-      this._updateSendEnabled();
     }
   }
 
@@ -2685,7 +2705,7 @@ class UIManager{
     if(!engine.isReady()) return;
 
     const transcript = substantive.slice(-14).map(m=>`${m.role}: ${m.content}`).join("\n").slice(0, 4000);
-    const extractPrompt = "Extract only lasting, useful facts about the user from this conversation — things like their name, preferences, ongoing projects, or important recurring context. Write them as a short bullet list (at most 5 bullets), in the SAME language the conversation was in. If there is nothing worth remembering long-term, reply with exactly: NONE";
+    const extractPrompt = "Extract only lasting, useful facts about the user from this conversation — things like their name, preferences, ongoing projects, or important recurring context. If the user explicitly asked to be remembered, called something, given a nickname, or said things like 'remember that...' or 'یادت باشه...', that request ALWAYS counts as worth remembering — include it as its own bullet, using their exact wording for names/nicknames. Write the result as a short bullet list (at most 6 bullets), in the SAME language the conversation was in. If there is truly nothing worth remembering long-term, reply with exactly: NONE";
     try{
       const result = await engine.send([{role:"user", content:transcript}], { systemPrompt: extractPrompt });
       const cleaned = stripThinking(result).trim();
@@ -2760,6 +2780,10 @@ class UIManager{
       this.chat.updateMessage(convoId, placeholder.id, {content: visibleFull, status:"sent"});
       this.renderConversation();
       this.renderHistory();
+      if(this.settings.get("memoryEnabled")){
+        const convoNow = this.chat.get(convoId);
+        this._maybeExtractMemory(convoNow);
+      }
     }catch(err){
       const { title, detail } = this._describeError(err);
       const partial = stripThinking(err.partial || "");
