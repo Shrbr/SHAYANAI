@@ -168,6 +168,8 @@ input,textarea,select{font-family:inherit;}
 .btn svg{width:17px;height:17px;flex:none;}
 
 #enhanceBtn.loading svg{animation:enhanceSpin 0.9s linear infinite;}
+#imageModeBtn.active{background:var(--accent-grad);color:#fff;border-color:transparent;}
+#imageModeBtn.loading svg{animation:enhanceSpin 0.9s linear infinite;}
 @keyframes enhanceSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 #enhanceBtn:disabled{opacity:.4;pointer-events:none;}
 
@@ -303,6 +305,8 @@ input,textarea,select{font-family:inherit;}
 .msg-content{
   font-size:14.5px;line-height:1.65;color:var(--text-0);word-wrap:break-word;
 }
+.generated-image{max-width:min(100%,420px);border-radius:14px;display:block;border:1px solid var(--border);}
+.generated-image-caption{font-size:12px;color:var(--text-2);margin-top:8px;}
 .msg-content.streaming::after{
   content:"";display:inline-block;width:7px;height:14px;margin-left:2px;background:var(--accent-1);
   vertical-align:text-bottom;animation:blink 0.9s steps(2) infinite;border-radius:1px;
@@ -574,6 +578,10 @@ input[type="range"]{width:100%;accent-color:var(--accent-1);}
   border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.5;margin-bottom:16px;
 }
 .gpu-warning svg{width:18px;height:18px;flex:none;color:var(--danger);margin-top:1px;}
+.security-warning{
+  background:var(--danger-bg);border:1px solid rgba(248,113,113,.3);color:var(--text-0);
+  border-radius:12px;padding:10px 14px;font-size:12px;line-height:1.5;margin:10px 0 4px;
+}
 
 /* ---------- Toasts ---------- */
 .toast-stack{
@@ -786,6 +794,9 @@ body.glass-mode .msg-content{ padding:10px 14px !important; border-radius:14px !
           <button class="btn btn-icon" id="enhanceBtn" aria-label="Improve prompt" data-i18n-title="enhanceTitle" title="Improve prompt">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2v3M9.5 19v3M2 9.5h3M19 9.5h3M4.5 4.5l2 2M14.5 14.5l2 2M4.5 14.5l2-2M14.5 4.5l2 2"/><path d="M9.5 6a3.5 3.5 0 003.5 3.5A3.5 3.5 0 009.5 13 3.5 3.5 0 006 9.5 3.5 3.5 0 009.5 6z"/></svg>
           </button>
+          <button class="btn btn-icon" id="imageModeBtn" aria-label="Generate image" data-i18n-title="imageModeTitle" title="Generate image" style="display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </button>
           <button class="stop-btn" id="stopBtn" style="display:none" aria-label="Stop generating" title="Stop generating">
             <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
           </button>
@@ -804,31 +815,55 @@ body.glass-mode .msg-content{ padding:10px 14px !important; border-radius:14px !
 <div class="setup-screen" id="setupScreen" role="dialog" aria-modal="true" aria-labelledby="setupTitle" style="display:none;">
   <div class="setup-card">
     <div class="empty-orb" aria-hidden="true"></div>
-    <h1 id="setupTitle" data-i18n="setupTitle">Shayan AI runs entirely on this device</h1>
-    <p data-i18n="setupDesc">No API, no key, no server — Shayan AI downloads a real AI model once and runs it fully offline in your browser using WebGPU. Nothing you type ever leaves this device.</p>
-
-    <div class="gpu-warning" id="setupGpuWarning" style="display:none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
-      <div data-i18n="gpuWarning">This browser doesn't support <b>WebGPU</b>, which the local model needs to run. Try the latest <b>Chrome</b> or <b>Edge</b> on desktop or Android, then reopen this page. You can still explore the interface in demo mode below.</div>
-    </div>
+    <h1 id="setupTitle" data-i18n="setupTitleApi">Connect Shayan AI to an API</h1>
+    <p data-i18n="setupDescApi">For the most accurate answers and best support for Persian and other languages, connect a free or low-cost API. It only takes a minute.</p>
 
     <div class="field">
-      <label data-i18n="chooseModel">Choose a model</label>
-      <div class="model-tier-grid" id="setupModelGrid"></div>
-      <div class="field-hint" data-i18n="chooseModelHint">Larger models are smarter but take longer to download (once) and need more RAM/VRAM. You can switch anytime in Settings.</div>
+      <label data-i18n="apiUrl">API URL</label>
+      <input type="text" id="setupApiUrl" value="https://openrouter.ai/api/v1/chat/completions">
     </div>
-
-    <div class="progress-wrap" id="setupProgressWrap" style="display:none;">
-      <div class="progress-track"><div class="progress-fill" id="setupProgressFill"></div></div>
-      <div class="progress-label" id="setupProgressLabel">Preparing…</div>
-      <div class="progress-note" id="setupProgressNote" style="display:none;"></div>
-      <button class="skip-link" id="setupCancelBtn" type="button" style="display:none;" data-i18n="cancel">Cancel</button>
+    <div class="field">
+      <label data-i18n="apiModel">Model name</label>
+      <input type="text" id="setupApiModel" value="openrouter/free">
     </div>
+    <div class="field">
+      <label data-i18n="apiKey">API key</label>
+      <input type="password" id="setupApiKey" placeholder="sk-or-…" data-i18n-placeholder="apiKeyPlaceholder">
+      <div class="field-hint"><a href="https://openrouter.ai/keys" target="_blank" rel="noopener">→ <span data-i18n="getFreeKeyAt">Get a free key at openrouter.ai</span></a></div>
+    </div>
+    <div class="security-warning" data-i18n="neverShareKey">⚠️ Never share your API key with anyone — treat it like a password.</div>
 
     <div class="setup-actions">
-      <button class="btn btn-block" id="setupSkipBtn" data-i18n="demoMode">Use demo mode</button>
-      <button class="btn btn-primary btn-block" id="setupDownloadBtn" data-i18n="downloadStart">Download &amp; Start</button>
+      <button class="btn btn-primary btn-block" id="setupConnectApiBtn" data-i18n="connectAndStart">Connect &amp; Start</button>
     </div>
+
+    <button class="skip-link" id="setupShowLocalToggle" type="button">▾ Or use a local model instead (weaker, but fully free &amp; offline)</button>
+    <div id="setupLocalWrap" style="display:none;">
+      <p data-i18n="setupDesc" style="margin-top:14px;">No API, no key, no server — Shayan AI downloads a real AI model once and runs it fully offline in your browser using WebGPU. Nothing you type ever leaves this device.</p>
+      <div class="gpu-warning" id="setupGpuWarning" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <div data-i18n="gpuWarning">This browser doesn't support <b>WebGPU</b>, which the local model needs to run. Try the latest <b>Chrome</b> or <b>Edge</b> on desktop or Android, then reopen this page. You can still explore the interface in demo mode below.</div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="chooseModel">Choose a model</label>
+        <div class="model-tier-grid" id="setupModelGrid"></div>
+        <div class="field-hint" data-i18n="chooseModelHintWeak">Larger models are smarter but take longer to download (once) and need more RAM/VRAM. All local models are noticeably weaker than a connected API — you can switch anytime in Settings.</div>
+      </div>
+
+      <div class="progress-wrap" id="setupProgressWrap" style="display:none;">
+        <div class="progress-track"><div class="progress-fill" id="setupProgressFill"></div></div>
+        <div class="progress-label" id="setupProgressLabel">Preparing…</div>
+        <div class="progress-note" id="setupProgressNote" style="display:none;"></div>
+        <button class="skip-link" id="setupCancelBtn" type="button" style="display:none;" data-i18n="cancel">Cancel</button>
+      </div>
+
+      <div class="setup-actions">
+        <button class="btn btn-primary btn-block" id="setupDownloadBtn" data-i18n="downloadStart">Download &amp; Start</button>
+      </div>
+    </div>
+
+    <button class="skip-link" id="setupSkipBtn" data-i18n="demoMode">Use demo mode</button>
     <button class="skip-link" id="setupOpenSettingsHint" data-i18n="changeAnytime">You can change this anytime in Settings</button>
     <button class="skip-link" id="apiTutorialToggle" type="button">▶ How to connect an API instead (short guide)</button>
     <div id="apiTutorialWrap" style="display:none;">
@@ -886,14 +921,21 @@ body.glass-mode .msg-content{ padding:10px 14px !important; border-radius:14px !
             <input type="text" id="cfgApiUrl" placeholder="https://api.example.com/v1/chat/completions" data-i18n-placeholder="apiUrlPlaceholder">
           </div>
           <div class="field">
-            <label for="cfgApiKey" data-i18n="apiKey">API key</label>
-            <input type="password" id="cfgApiKey" placeholder="sk-…" data-i18n-placeholder="apiKeyPlaceholder">
+            <label for="cfgApiModel" data-i18n="apiModel">Model name</label>
+            <input type="text" id="cfgApiModel" placeholder="e.g. openrouter/free" data-i18n-placeholder="apiModelPlaceholder">
           </div>
           <div class="field">
-            <label for="cfgApiModel" data-i18n="apiModel">Model name</label>
-            <input type="text" id="cfgApiModel" placeholder="e.g. llama-3.3-70b-versatile" data-i18n-placeholder="apiModelPlaceholder">
+            <label for="cfgApiKey" data-i18n="apiKey">API key</label>
+            <input type="password" id="cfgApiKey" placeholder="sk-…" data-i18n-placeholder="apiKeyPlaceholder">
+            <div class="field-hint"><a href="https://openrouter.ai/keys" target="_blank" rel="noopener">→ <span data-i18n="getFreeKeyAt">Get a free key at openrouter.ai</span></a></div>
           </div>
-          <div class="field-hint" data-i18n="apiHint">Optional — points at any OpenAI-compatible chat/completions endpoint you control (e.g. your own key for Groq, OpenRouter, or a self-hosted server). Your key is stored only in this browser and sent only to the URL above. The app keeps working 100% locally without this.</div>
+          <div class="security-warning" data-i18n="neverShareKey">⚠️ Never share your API key with anyone — treat it like a password.</div>
+          <div class="field">
+            <label for="cfgApiImageModel" data-i18n="apiImageModel">Image model (optional)</label>
+            <input type="text" id="cfgApiImageModel" placeholder="e.g. dall-e-3" data-i18n-placeholder="apiImageModelPlaceholder">
+            <div class="field-hint" data-i18n="apiImageModelHint">Only needed for the image-generation button — requires an OpenAI-compatible /images/generations endpoint (works with an OpenAI key; most free OpenRouter text models don't support this).</div>
+          </div>
+          <div class="field-hint" data-i18n="apiHint">Points at any OpenAI-compatible chat/completions endpoint you control (e.g. your own key for Groq, OpenRouter, or a self-hosted server). Your key is stored only in this browser and sent only to the URL above. The app keeps working 100% locally without this.</div>
           <button class="skip-link" id="cfgApiTutorialToggle" type="button" style="margin-top:8px;">▶ How to connect an API instead (short guide)</button>
           <div id="cfgApiTutorialWrap" style="display:none;">
             <iframe id="cfgApiTutorialFrame" title="How to connect an API" style="width:100%;aspect-ratio:9/14;max-height:60vh;border:0;border-radius:14px;margin-top:10px;background:#0B0E14;"></iframe>
@@ -903,6 +945,7 @@ body.glass-mode .msg-content{ padding:10px 14px !important; border-radius:14px !
 
       <section class="settings-section">
         <h3 data-i18n="localModelHeader">Local Model</h3>
+        <div class="settings-row-desc" data-i18n="localModelWeakNote" style="margin-bottom:10px;">Local models are noticeably weaker than a connected API — recommended only when you can't or don't want to use an API.</div>
         <div class="model-status-row">
           <span class="model-status-dot" id="cfgModelStatusDot"></span>
           <span id="cfgModelStatusText">No model loaded</span>
@@ -1051,9 +1094,16 @@ const I18N = {
     hintEnterSend:"Enter to send · Shift+Enter for new line", hintClickSend:"Click send · Enter adds a new line",
     disclaimer:"Shayan AI is AI and can make mistakes. Check important info.",
     setupTitle:"Shayan AI runs entirely on this device",
+    setupTitleApi:"Connect Shayan AI to an API",
     setupDesc:"No API, no key, no server — Shayan AI downloads a real AI model once and runs it fully offline in your browser using WebGPU. Nothing you type ever leaves this device.",
+    setupDescApi:"For the most accurate answers and best support for Persian and other languages, connect a free or low-cost API. It only takes a minute.",
     gpuWarning:"This browser doesn't support <b>WebGPU</b>, which the local model needs to run. Try the latest <b>Chrome</b> or <b>Edge</b> on desktop or Android, then reopen this page. You can still explore the interface in demo mode below.",
     chooseModel:"Choose a model", chooseModelHint:"Larger models are smarter but take longer to download (once) and need more RAM/VRAM. You can switch anytime in Settings. For non-English languages and math, larger tiers tend to do noticeably better.",
+    chooseModelHintWeak:"Larger models are smarter but take longer to download (once) and need more RAM/VRAM. All local models are noticeably weaker than a connected API — you can switch anytime in Settings.",
+    setupShowLocalLabel:"Or use a local model instead (weaker, but fully free & offline)",
+    getFreeKeyAt:"Get a free key at openrouter.ai", neverShareKey:"⚠️ Never share your API key with anyone — treat it like a password.",
+    connectAndStart:"Connect & Start", apiConnected:"Connected — you're ready to chat", setupFillFields:"Please fill in the API URL and model name first.",
+    localModelWeakNote:"Local models are noticeably weaker than a connected API — recommended only when you can't or don't want to use an API.",
     cancel:"Cancel", confirm:"Confirm", demoMode:"Use demo mode", downloadStart:"Download & Start", changeAnytime:"You can change this anytime in Settings",
     starting:"Starting…", downloadCancelled:"Download cancelled",
     stallNote:"Still working — if this doesn't move for a while, the download server may be slow or blocked on your network. You can cancel and try a different network/VPN.",
@@ -1093,8 +1143,11 @@ const I18N = {
     connectionHeader:"Connection", connectionMode:"Mode", connectionModeDesc:"Run fully local, or connect to an API you provide",
     connectionLocal:"Local", connectionApi:"API",
     apiUrl:"API URL", apiKey:"API key", apiModel:"Model name",
-    apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"e.g. llama-3.3-70b-versatile",
-    apiHint:"Optional — points at any OpenAI-compatible chat/completions endpoint you control (e.g. your own key for Groq, OpenRouter, or a self-hosted server). Your key is stored only in this browser and sent only to the URL above. The app keeps working 100% locally without this.",
+    apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"e.g. openrouter/free",
+    apiHint:"Points at any OpenAI-compatible chat/completions endpoint you control (e.g. your own key for Groq, OpenRouter, or a self-hosted server). Your key is stored only in this browser and sent only to the URL above.",
+    apiImageModel:"Image model (optional)", apiImageModelPlaceholder:"e.g. dall-e-3",
+    apiImageModelHint:"Only needed for the image-generation button — requires an OpenAI-compatible /images/generations endpoint (works with an OpenAI key; most free OpenRouter text models don't support this).",
+    imageModeTitle:"Generate image", imageModeHint:"Image mode is on — describe the image you want, then send.", imageGenerating:"Generating image…",
     apiTutorialToggleLabel:"How to connect an API instead (short guide)",
     suggest1Title:"Explain a concept", suggest1Desc:"Break down how transformers work",
     suggest2Title:"Write code", suggest2Desc:"A debounce function in JavaScript",
@@ -1108,9 +1161,16 @@ const I18N = {
     hintEnterSend:"Enter برای ارسال · Shift+Enter برای خط جدید", hintClickSend:"روی دکمه‌ی ارسال بزن · Enter خط جدید می‌سازه",
     disclaimer:"Shayan AI هوش مصنوعیه و ممکنه اشتباه کنه. اطلاعات مهم رو خودت هم چک کن.",
     setupTitle:"Shayan AI کاملاً روی همین دستگاه اجرا می‌شه",
+    setupTitleApi:"Shayan AI رو به یه API وصل کن",
     setupDesc:"بدون API، بدون کلید، بدون سرور — Shayan AI یک‌بار یک مدل هوش مصنوعی واقعی دانلود می‌کنه و کاملاً آفلاین توی مرورگرت با WebGPU اجرا می‌شه. هیچی از چیزی که تایپ می‌کنی از این دستگاه خارج نمی‌شه.",
+    setupDescApi:"برای دقیق‌ترین جواب‌ها و بهترین پشتیبانی از فارسی و زبان‌های دیگه، یه API رایگان یا ارزون وصل کن — فقط یه دقیقه طول می‌کشه.",
     gpuWarning:"این مرورگر از <b>WebGPU</b> پشتیبانی نمی‌کنه که مدل محلی برای اجرا بهش نیاز داره. آخرین نسخه‌ی <b>Chrome</b> یا <b>Edge</b> رو روی دسکتاپ یا اندروید امتحان کن و دوباره این صفحه رو باز کن. فعلاً می‌تونی رابط کاربری رو در حالت دمو ببینی.",
     chooseModel:"یک مدل انتخاب کن", chooseModelHint:"مدل‌های بزرگ‌تر باهوش‌ترن ولی دانلودشون (یک‌بار) بیشتر طول می‌کشه و به رم/گرافیک بیشتری نیاز دارن. هر وقت خواستی از تنظیمات عوضش کن. برای فارسی و سوالات ریاضی، مدل‌های بزرگ‌تر معمولاً محسوس بهترن.",
+    chooseModelHintWeak:"مدل‌های بزرگ‌تر باهوش‌ترن ولی دانلودشون (یک‌بار) بیشتر طول می‌کشه و به رم/گرافیک بیشتری نیاز دارن. همه‌ی مدل‌های محلی محسوس ضعیف‌تر از یه API وصل‌شده‌ان — هر وقت خواستی از تنظیمات عوضش کن.",
+    setupShowLocalLabel:"یا به‌جاش یه مدل محلی استفاده کن (ضعیف‌تر، ولی کاملاً رایگان و آفلاین)",
+    getFreeKeyAt:"یه کلید رایگان از openrouter.ai بگیر", neverShareKey:"⚠️ کلید API‌ت رو هیچ‌وقت به کسی نده — مثل رمز عبور باهاش رفتار کن.",
+    connectAndStart:"اتصال و شروع", apiConnected:"وصل شد — آماده‌ای برای چت", setupFillFields:"لطفاً اول آدرس API و اسم مدل رو پر کن.",
+    localModelWeakNote:"مدل‌های محلی محسوس ضعیف‌تر از یه API وصل‌شده‌ان — فقط وقتی پیشنهاد می‌شن که نمی‌خوای یا نمی‌تونی از API استفاده کنی.",
     cancel:"لغو", confirm:"تأیید", demoMode:"استفاده در حالت دمو", downloadStart:"دانلود و شروع", changeAnytime:"هر وقت خواستی از تنظیمات می‌تونی عوضش کنی",
     starting:"در حال شروع…", downloadCancelled:"دانلود لغو شد",
     stallNote:"هنوز در حال کاره — اگه مدتی تکون نخوره، ممکنه سرور دانلود مدل رو شبکه‌ت کند یا مسدود کرده باشه. می‌تونی لغو کنی و از یه شبکه/VPN دیگه امتحان کنی.",
@@ -1150,8 +1210,11 @@ const I18N = {
     connectionHeader:"اتصال", connectionMode:"حالت", connectionModeDesc:"کاملاً محلی اجرا شه، یا به یه API که خودت می‌دی وصل شه",
     connectionLocal:"محلی", connectionApi:"API",
     apiUrl:"آدرس API", apiKey:"کلید API", apiModel:"اسم مدل",
-    apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"مثلاً llama-3.3-70b-versatile",
-    apiHint:"اختیاریه — به هر endpoint سازگار با OpenAI که خودت کنترلش می‌کنی وصل می‌شه (مثلاً کلید خودت برای Groq، OpenRouter، یا سرور خودت). کلیدت فقط تو همین مرورگر ذخیره می‌شه و فقط به همون آدرس بالا فرستاده می‌شه. برنامه بدون این هم صددرصد محلی کار می‌کنه.",
+    apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"مثلاً openrouter/free",
+    apiHint:"به هر endpoint سازگار با OpenAI که خودت کنترلش می‌کنی وصل می‌شه (مثلاً کلید خودت برای Groq، OpenRouter، یا سرور خودت). کلیدت فقط تو همین مرورگر ذخیره می‌شه و فقط به همون آدرس بالا فرستاده می‌شه.",
+    apiImageModel:"مدل تصویرسازی (اختیاری)", apiImageModelPlaceholder:"مثلاً dall-e-3",
+    apiImageModelHint:"فقط برای دکمه‌ی تصویرسازی لازمه — به یه endpoint سازگار با OpenAI به اسم /images/generations نیاز داره (با کلید OpenAI کار می‌کنه؛ اکثر مدل‌های متنی رایگان OpenRouter این رو پشتیبانی نمی‌کنن).",
+    imageModeTitle:"ساخت تصویر", imageModeHint:"حالت تصویرسازی روشنه — تصویری که می‌خوای رو توضیح بده و بفرست.", imageGenerating:"در حال ساخت تصویر…",
     apiTutorialToggleLabel:"آموزش اتصال API (راهنمای کوتاه)",
     suggest1Title:"توضیح یک مفهوم", suggest1Desc:"نحوه‌ی کار ترنسفورمرها رو باز کن",
     suggest2Title:"نوشتن کد", suggest2Desc:"یک تابع debounce به جاوااسکریپت",
@@ -1273,7 +1336,7 @@ class SettingsManager{
       persona:"general", customSystemPrompt:"",
       enterToSend:true, showTimestamps:true, saveConversations:true,
       language:"en",
-      connectionMode:"local", apiUrl:"", apiKey:"", apiModel:"",
+      connectionMode:"local", apiUrl:"", apiKey:"", apiModel:"", apiImageModel:"",
       glassEffect:false,
       memoryEnabled:false,
       setupDone:false
@@ -1607,6 +1670,59 @@ class ApiEngine{
     onChunk && onChunk(text, text);
     return text;
   }
+
+  /** Image generation only works if the configured API URL follows the
+   *  standard OpenAI-style convention (…/v1/chat/completions), from which
+   *  the sibling …/v1/images/generations endpoint is derived. This works
+   *  with OpenAI's own API (with an OpenAI key + a model like "dall-e-3");
+   *  most OpenRouter free-tier text models do NOT support this endpoint. */
+  async generateImage(prompt){
+    const s = this.settings;
+    if(!this.isConfigured()){ const err = new Error("NOT_CONFIGURED"); err.code="NOT_CONFIGURED"; throw err; }
+    if(!navigator.onLine){ const err = new Error("Offline"); err.code="OFFLINE"; throw err; }
+
+    const chatUrl = s.get("apiUrl");
+    const imageUrl = chatUrl.replace(/\/chat\/completions\/?$/i, "/images/generations");
+    if(imageUrl === chatUrl){
+      const err = new Error("Couldn't determine the image-generation endpoint from your API URL — it needs to end with /chat/completions for this to work automatically.");
+      err.code = "IMAGE_ENDPOINT_UNKNOWN"; throw err;
+    }
+    const model = (s.get("apiImageModel")||"").trim() || "dall-e-3";
+
+    let res;
+    try{
+      res = await fetch(imageUrl, {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          ...(s.get("apiKey") ? {"Authorization":"Bearer "+s.get("apiKey")} : {})
+        },
+        body: JSON.stringify({ model, prompt, n:1, size:"1024x1024" })
+      });
+    }catch(networkErr){
+      const err = new Error("Network error — the API could not be reached"); err.code="NETWORK"; throw err;
+    }
+
+    if(!res.ok){
+      let detail = "";
+      try{ const j = await res.json(); detail = j?.error?.message || j?.message || ""; }catch(e){ /* ignore */ }
+      const err = new Error(detail || res.statusText || "Image request failed");
+      if(res.status === 401 || res.status === 403) err.code = "UNAUTHORIZED";
+      else if(res.status === 404) err.code = "IMAGE_ENDPOINT_UNKNOWN";
+      else if(res.status === 429) err.code = "RATE_LIMIT";
+      else if(res.status >= 500) err.code = "SERVER";
+      else err.code = "API_ERROR";
+      throw err;
+    }
+
+    let data;
+    try{ data = await res.json(); }
+    catch(e){ const err = new Error("Malformed API response"); err.code="EMPTY"; throw err; }
+    const item = data?.data?.[0];
+    const url = item?.url || (item?.b64_json ? ("data:image/png;base64,"+item.b64_json) : null);
+    if(!url){ const err = new Error("No image returned"); err.code="EMPTY"; throw err; }
+    return url;
+  }
 }
 
 /* ============================================================
@@ -1837,17 +1953,19 @@ class UIManager{
       settingsBtn:$("settingsBtn"), themeToggleBtn:$("themeToggleBtn"), themeIcon:$("themeIcon"),
       chatScroll:$("chatScroll"), chatInner:$("chatInner"), chatTitleLabel:$("chatTitleLabel"), chatSubLabel:$("chatSubLabel"),
       personaPill:$("personaPill"), personaPillLabel:$("personaPillLabel"),
-      composerInput:$("composerInput"), sendBtn:$("sendBtn"), stopBtn:$("stopBtn"), enhanceBtn:$("enhanceBtn"),
+      composerInput:$("composerInput"), sendBtn:$("sendBtn"), stopBtn:$("stopBtn"), enhanceBtn:$("enhanceBtn"), imageModeBtn:$("imageModeBtn"),
       composerHint:$("composerHint"),
       offlineBanner:$("offlineBanner"),
       setupScreen:$("setupScreen"), setupGpuWarning:$("setupGpuWarning"), setupModelGrid:$("setupModelGrid"),
       setupProgressWrap:$("setupProgressWrap"), setupProgressFill:$("setupProgressFill"), setupProgressLabel:$("setupProgressLabel"), setupProgressNote:$("setupProgressNote"),
       setupDownloadBtn:$("setupDownloadBtn"), setupCancelBtn:$("setupCancelBtn"), setupSkipBtn:$("setupSkipBtn"),
+      setupApiUrl:$("setupApiUrl"), setupApiModel:$("setupApiModel"), setupApiKey:$("setupApiKey"), setupConnectApiBtn:$("setupConnectApiBtn"),
+      setupShowLocalToggle:$("setupShowLocalToggle"), setupLocalWrap:$("setupLocalWrap"),
       settingsOverlay:$("settingsOverlay"), closeSettingsBtn:$("closeSettingsBtn"),
       themeSeg:$("themeSeg"), languageSeg:$("languageSeg"), cfgGlassEffect:$("cfgGlassEffect"),
       cfgMemoryEnabled:$("cfgMemoryEnabled"), cfgMemoryCount:$("cfgMemoryCount"), cfgClearMemoryBtn:$("cfgClearMemoryBtn"),
       connectionModeSeg:$("connectionModeSeg"), apiFieldsWrap:$("apiFieldsWrap"),
-      cfgApiUrl:$("cfgApiUrl"), cfgApiKey:$("cfgApiKey"), cfgApiModel:$("cfgApiModel"),
+      cfgApiUrl:$("cfgApiUrl"), cfgApiKey:$("cfgApiKey"), cfgApiModel:$("cfgApiModel"), cfgApiImageModel:$("cfgApiImageModel"),
       apiTutorialToggle:$("apiTutorialToggle"), apiTutorialWrap:$("apiTutorialWrap"), apiTutorialFrame:$("apiTutorialFrame"),
       cfgApiTutorialToggle:$("cfgApiTutorialToggle"), cfgApiTutorialWrap:$("cfgApiTutorialWrap"), cfgApiTutorialFrame:$("cfgApiTutorialFrame"),
       cfgModelStatusDot:$("cfgModelStatusDot"), cfgModelStatusText:$("cfgModelStatusText"), cfgGpuWarning:$("cfgGpuWarning"),
@@ -1890,6 +2008,12 @@ class UIManager{
       this.dom.connectionModeSeg.querySelectorAll("button").forEach(b=>b.classList.toggle("active", b.dataset.v===mode));
     }
     this.dom.apiFieldsWrap.style.display = mode === "api" ? "block" : "none";
+    this.dom.imageModeBtn.style.display = mode === "api" ? "flex" : "none";
+    if(mode !== "api" && this._imageMode){
+      this._imageMode = false;
+      this.dom.imageModeBtn.classList.remove("active");
+      this._updateComposerHint();
+    }
   }
   _wireApiTutorialToggle(toggleBtn, wrapEl, frameEl){
     if(!toggleBtn) return;
@@ -1956,10 +2080,17 @@ class UIManager{
       this._renderPersonaOptions();
       this.renderConversation();
       (this._apiTutorialRefreshers||[]).forEach(fn=>fn());
+      this._refreshSetupLocalToggleLabel();
     });
     d.connectionModeSeg.addEventListener("click",(e)=>{
       const btn = e.target.closest("button"); if(!btn) return;
       this.settings.set("connectionMode", btn.dataset.v);
+      if(btn.dataset.v === "api"){
+        if(!this.settings.get("apiUrl")){ this.settings.set("apiUrl", "https://openrouter.ai/api/v1/chat/completions"); }
+        if(!this.settings.get("apiModel")){ this.settings.set("apiModel", "openrouter/free"); }
+        d.cfgApiUrl.value = this.settings.get("apiUrl");
+        d.cfgApiModel.value = this.settings.get("apiModel");
+      }
       this._syncConnectionModeUI();
       this._updateModelStatusUI();
       this.renderConversation();
@@ -1967,6 +2098,7 @@ class UIManager{
     d.cfgApiUrl.addEventListener("change", ()=>{ this.settings.set("apiUrl", d.cfgApiUrl.value.trim()); });
     d.cfgApiKey.addEventListener("change", ()=>{ this.settings.set("apiKey", d.cfgApiKey.value.trim()); });
     d.cfgApiModel.addEventListener("change", ()=>{ this.settings.set("apiModel", d.cfgApiModel.value.trim()); this._updateModelStatusUI(); this.renderConversation(); });
+    d.cfgApiImageModel.addEventListener("change", ()=>{ this.settings.set("apiImageModel", d.cfgApiImageModel.value.trim()); });
     this._wireApiTutorialToggle(d.apiTutorialToggle, d.apiTutorialWrap, d.apiTutorialFrame);
     this._wireApiTutorialToggle(d.cfgApiTutorialToggle, d.cfgApiTutorialWrap, d.cfgApiTutorialFrame);
 
@@ -1984,11 +2116,22 @@ class UIManager{
     d.sendBtn.addEventListener("click", ()=> this.handleSend());
     d.stopBtn.addEventListener("click", ()=> this.stopGenerating());
     d.enhanceBtn.addEventListener("click", ()=> this._enhancePrompt());
+    d.imageModeBtn.addEventListener("click", ()=>{
+      this._imageMode = !this._imageMode;
+      d.imageModeBtn.classList.toggle("active", this._imageMode);
+      this._updateComposerHint();
+    });
 
     // setup screen
     d.setupDownloadBtn.addEventListener("click", ()=> this._downloadAndStartSetup());
     d.setupCancelBtn.addEventListener("click", ()=> this._cancelSetupDownload());
     d.setupSkipBtn.addEventListener("click", ()=> this._skipSetup());
+    d.setupConnectApiBtn.addEventListener("click", ()=> this._connectApiFromSetup());
+    d.setupShowLocalToggle.addEventListener("click", ()=>{
+      const showing = d.setupLocalWrap.style.display === "block";
+      d.setupLocalWrap.style.display = showing ? "none" : "block";
+      this._refreshSetupLocalToggleLabel();
+    });
     d.setupModelGrid.addEventListener("click",(e)=>{
       const btn = e.target.closest("[data-tier]"); if(!btn) return;
       this.setupSelectedTier = btn.dataset.tier;
@@ -2079,6 +2222,10 @@ class UIManager{
     if(!this._enhancing) this.dom.enhanceBtn.disabled = !hasText || this.isGenerating;
   }
   _updateComposerHint(){
+    if(this._imageMode){
+      this.dom.composerHint.textContent = t("imageModeHint");
+      return;
+    }
     this.dom.composerHint.textContent = this.settings.get("enterToSend")
       ? t("hintEnterSend")
       : t("hintClickSend");
@@ -2110,6 +2257,28 @@ class UIManager{
       desc:(tierDef)=> t("tierDesc_"+tierDef.tier)
     });
     if(!gpuOk){ this.dom.setupModelGrid.querySelectorAll("button").forEach(b=>b.disabled=true); }
+    this.dom.setupLocalWrap.style.display = "none";
+    this._refreshSetupLocalToggleLabel();
+    // Prefill with OpenRouter defaults only if the fields are still empty —
+    // never clobber something the user already typed.
+    if(!this.dom.setupApiUrl.value) this.dom.setupApiUrl.value = "https://openrouter.ai/api/v1/chat/completions";
+    if(!this.dom.setupApiModel.value) this.dom.setupApiModel.value = "openrouter/free";
+  }
+  _refreshSetupLocalToggleLabel(){
+    const showing = this.dom.setupLocalWrap.style.display === "block";
+    this.dom.setupShowLocalToggle.textContent = (showing ? "▴ " : "▾ ") + t("setupShowLocalLabel");
+  }
+  async _connectApiFromSetup(){
+    const url = this.dom.setupApiUrl.value.trim();
+    const model = this.dom.setupApiModel.value.trim();
+    const key = this.dom.setupApiKey.value.trim();
+    if(!url || !model){ this.toast(t("setupFillFields"), "error"); return; }
+    this.settings.setMany({ apiUrl:url, apiModel:model, apiKey:key, connectionMode:"api", setupDone:true });
+    this.dom.setupScreen.style.display = "none";
+    if(this.chat.list().length===0) this.chat.create();
+    this.renderHistory(); this.renderConversation();
+    this._updateModelStatusUI();
+    this.toast(t("apiConnected"), "success");
   }
 
   /** Shared download/load runner used by both the setup screen and Settings panel.
@@ -2216,6 +2385,7 @@ class UIManager{
     d.cfgApiUrl.value = s.get("apiUrl")||"";
     d.cfgApiKey.value = s.get("apiKey")||"";
     d.cfgApiModel.value = s.get("apiModel")||"";
+    d.cfgApiImageModel.value = s.get("apiImageModel")||"";
     this._syncConnectionModeUI();
     this._updateComposerHint();
     this._updatePersonaPill();
@@ -2458,7 +2628,15 @@ class UIManager{
       const content = document.createElement("div");
       content.className = "msg-content" + (m.status==="generating" && !m.content ? "" : "");
       if(m.status==="generating" && !m.content){
-        content.innerHTML = `<span class="typing-dots"><span></span><span></span><span></span></span>`;
+        content.innerHTML = `<span class="typing-dots"><span></span><span></span><span></span></span>` + (m.imagePending ? `<span class="thinking-label">${escapeHtml(t("imageGenerating"))}</span>` : "");
+      } else if(m.imageUrl){
+        content.innerHTML = `<img class="generated-image" src="${escapeHtml(m.imageUrl)}" alt="${escapeHtml(m.content||"Generated image")}" loading="lazy">`;
+        if(m.content){
+          const cap = document.createElement("div");
+          cap.className = "generated-image-caption";
+          cap.textContent = m.content;
+          content.appendChild(cap);
+        }
       } else {
         content.innerHTML = Markdown.render(m.content||"");
         if(m.status==="generating") content.classList.add("streaming");
@@ -2518,9 +2696,16 @@ class UIManager{
       this._requestAssistantReply(convo.id);
     }
     else if(action==="retry"){
+      const wasImage = m?.wasImageRequest;
+      const idx = convo.messages.findIndex(x=>x.id===msgId);
+      const priorUser = idx>0 ? convo.messages[idx-1] : null;
       this.chat.removeMessage(convo.id, msgId);
       this.renderConversation();
-      this._requestAssistantReply(convo.id);
+      if(wasImage && priorUser && priorUser.role==="user"){
+        this._requestImageReply(convo.id, priorUser.content);
+      } else {
+        this._requestAssistantReply(convo.id);
+      }
     }
     else if(action==="regenerate"){
       // remove this assistant message and any after, then regenerate from prior user message
@@ -2645,7 +2830,11 @@ class UIManager{
     this._updateSendEnabled();
     this.renderHistory();
     this.renderConversation();
-    this._requestAssistantReply(convo.id);
+    if(this._imageMode){
+      this._requestImageReply(convo.id, text);
+    } else {
+      this._requestAssistantReply(convo.id);
+    }
   }
 
   /** "Improve prompt" — rewrites the user's rough draft into a clearer, more
@@ -2800,6 +2989,33 @@ class UIManager{
     }
   }
 
+  /** Generates an image via the configured API (see ApiEngine.generateImage)
+   *  and renders it as an assistant message. Only reachable while image mode
+   *  is toggled on in the composer, which itself is only visible in API mode. */
+  async _requestImageReply(convoId, prompt){
+    if(!this.apiEngine.isReady()){
+      this.chat.addMessage(convoId, { role:"assistant", content: t("enhanceNoEngine"), status:"error", errorTitle: t("notConnectedShort") });
+      this.renderConversation(); this.renderHistory();
+      return;
+    }
+    const placeholder = this.chat.addMessage(convoId, { role:"assistant", content:"", status:"generating", imagePending:true });
+    this.renderConversation();
+    this._setGenerating(true);
+    try{
+      const url = await this.apiEngine.generateImage(prompt);
+      this.chat.updateMessage(convoId, placeholder.id, { content: prompt, imageUrl: url, imagePending:false, status:"sent" });
+      this.renderConversation();
+      this.renderHistory();
+    }catch(err){
+      const { title, detail } = this._describeError(err);
+      this.chat.updateMessage(convoId, placeholder.id, { content: detail, status:"error", errorTitle: title, imagePending:false, wasImageRequest:true });
+      this.renderConversation();
+      this.renderHistory();
+    }finally{
+      this._setGenerating(false);
+    }
+  }
+
   _patchStreamingMessage(msgId, text){
     const el = this.dom.chatInner.querySelector(`.msg[data-id="${msgId}"] .msg-content`);
     if(el){ el.classList.add("streaming"); el.innerHTML = Markdown.render(text); }
@@ -2833,6 +3049,7 @@ class UIManager{
       case "RATE_LIMIT": return {title:"Rate limit reached", detail:"Too many requests — wait a moment and try again."};
       case "SERVER": return {title:"API unavailable", detail:"The API is currently having issues. Try again shortly."};
       case "API_ERROR": return {title:"API error", detail: err.message || "The API rejected the request. Check your settings."};
+      case "IMAGE_ENDPOINT_UNKNOWN": return {title:"Image generation unavailable", detail: err.message || "This API doesn't support image generation, or your API URL doesn't follow the standard pattern needed to find its image endpoint. Try an OpenAI key with a model like dall-e-3."};
       case "EMPTY": return {title:"Empty response", detail: usingApi ? "The API returned no content. Try again." : "The model returned no content. Try again."};
       default: return {title:"Request failed", detail: err.message || "Something went wrong. Please try again."};
     }
