@@ -930,17 +930,32 @@ body.glass-mode .msg-content{ padding:10px 14px !important; border-radius:14px !
             <div class="field-hint"><a href="https://openrouter.ai/keys" target="_blank" rel="noopener">→ <span data-i18n="getFreeKeyAt">Get a free key at openrouter.ai</span></a></div>
           </div>
           <div class="security-warning" data-i18n="neverShareKey">⚠️ Never share your API key with anyone — treat it like a password.</div>
-          <div class="field">
-            <label for="cfgApiImageModel" data-i18n="apiImageModel">Image model (optional)</label>
-            <input type="text" id="cfgApiImageModel" placeholder="e.g. dall-e-3" data-i18n-placeholder="apiImageModelPlaceholder">
-            <div class="field-hint" data-i18n="apiImageModelHint">Only needed for the image-generation button — requires an OpenAI-compatible /images/generations endpoint (works with an OpenAI key; most free OpenRouter text models don't support this).</div>
-          </div>
           <div class="field-hint" data-i18n="apiHint">Points at any OpenAI-compatible chat/completions endpoint you control (e.g. your own key for Groq, OpenRouter, or a self-hosted server). Your key is stored only in this browser and sent only to the URL above. The app keeps working 100% locally without this.</div>
           <button class="skip-link" id="cfgApiTutorialToggle" type="button" style="margin-top:8px;">▶ How to connect an API instead (short guide)</button>
           <div id="cfgApiTutorialWrap" style="display:none;">
             <iframe id="cfgApiTutorialFrame" title="How to connect an API" style="width:100%;aspect-ratio:9/14;max-height:60vh;border:0;border-radius:14px;margin-top:10px;background:#0B0E14;"></iframe>
           </div>
         </div>
+      </section>
+
+      <section class="settings-section" id="imageApiSection" style="display:none;">
+        <h3 data-i18n="imageApiHeader">Image Generation</h3>
+        <div class="settings-row-desc" data-i18n="imageApiIntro" style="margin-bottom:10px;">Separate from your chat API above — image generation almost always needs a different provider (e.g. OpenAI), since most chat-only APIs like the free OpenRouter tier don't support it.</div>
+        <div class="field">
+          <label for="cfgApiImageUrl" data-i18n="apiImageUrl">Image API URL</label>
+          <input type="text" id="cfgApiImageUrl" placeholder="https://api.openai.com/v1/images/generations" data-i18n-placeholder="apiImageUrlPlaceholder">
+        </div>
+        <div class="field">
+          <label for="cfgApiImageModel" data-i18n="apiImageModel">Image model</label>
+          <input type="text" id="cfgApiImageModel" placeholder="e.g. dall-e-3" data-i18n-placeholder="apiImageModelPlaceholder">
+        </div>
+        <div class="field">
+          <label for="cfgApiImageKey" data-i18n="apiImageKey">Image API key</label>
+          <input type="password" id="cfgApiImageKey" placeholder="sk-…" data-i18n-placeholder="apiImageKeyPlaceholder">
+          <div class="field-hint" data-i18n="apiImageKeyHint">Leave blank to reuse your chat API key above — only fill this in if your image provider needs a different key.</div>
+        </div>
+        <div class="security-warning" data-i18n="neverShareKey">⚠️ Never share your API key with anyone — treat it like a password.</div>
+        <div class="field-hint" data-i18n="apiImageModelHint">Needs a real OpenAI-compatible /images/generations endpoint. OpenAI itself (with an OpenAI key and a model like dall-e-3) is the most reliable option.</div>
       </section>
 
       <section class="settings-section">
@@ -1145,8 +1160,14 @@ const I18N = {
     apiUrl:"API URL", apiKey:"API key", apiModel:"Model name",
     apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"e.g. openrouter/free",
     apiHint:"Points at any OpenAI-compatible chat/completions endpoint you control (e.g. your own key for Groq, OpenRouter, or a self-hosted server). Your key is stored only in this browser and sent only to the URL above.",
+    imageApiHeader:"Image Generation",
+    imageApiIntro:"Separate from your chat API above — image generation almost always needs a different setup. The simplest option if you already use OpenRouter for chat: use https://openrouter.ai/api/v1/images with the same key (cheap, not free). OpenAI's own endpoint with dall-e-3 also works.",
+    apiImageUrl:"Image API URL", apiImageUrlPlaceholder:"https://openrouter.ai/api/v1/images",
+    apiImageKey:"Image API key", apiImageKeyPlaceholder:"sk-…",
+    apiImageKeyHint:"Leave blank to reuse your chat API key above — only fill this in if your image provider needs a different key.",
+    imageNotConfigured:"No image API is set up yet. Open Settings → Connection → Image Generation and fill in the URL and model.",
     apiImageModel:"Image model (optional)", apiImageModelPlaceholder:"e.g. dall-e-3",
-    apiImageModelHint:"Only needed for the image-generation button — requires an OpenAI-compatible /images/generations endpoint (works with an OpenAI key; most free OpenRouter text models don't support this).",
+    apiImageModelHint:"Needs a real OpenAI-compatible /images/generations (or similar) endpoint. The simplest option if you already use OpenRouter for chat: https://openrouter.ai/api/v1/images with the same key — cheap (often under a cent per image) but not free. OpenAI's own endpoint with dall-e-3 also works.",
     imageModeTitle:"Generate image", imageModeHint:"Image mode is on — describe the image you want, then send.", imageGenerating:"Generating image…",
     apiTutorialToggleLabel:"How to connect an API instead (short guide)",
     suggest1Title:"Explain a concept", suggest1Desc:"Break down how transformers work",
@@ -1212,8 +1233,14 @@ const I18N = {
     apiUrl:"آدرس API", apiKey:"کلید API", apiModel:"اسم مدل",
     apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"مثلاً openrouter/free",
     apiHint:"به هر endpoint سازگار با OpenAI که خودت کنترلش می‌کنی وصل می‌شه (مثلاً کلید خودت برای Groq، OpenRouter، یا سرور خودت). کلیدت فقط تو همین مرورگر ذخیره می‌شه و فقط به همون آدرس بالا فرستاده می‌شه.",
+    imageApiHeader:"تصویرسازی",
+    imageApiIntro:"جدا از API چتی که بالا تنظیم کردی — تصویرسازی تقریباً همیشه به یه تنظیم دیگه نیاز داره. اگه از قبل برای چت OpenRouter داری، ساده‌ترین گزینه اینه: از https://openrouter.ai/api/v1/images با همون کلید استفاده کن (ارزونه، ولی رایگان نیست). آدرس خودِ OpenAI با dall-e-3 هم کار می‌کنه.",
+    apiImageUrl:"آدرس API تصویرسازی", apiImageUrlPlaceholder:"https://openrouter.ai/api/v1/images",
+    apiImageKey:"کلید API تصویرسازی", apiImageKeyPlaceholder:"sk-…",
+    apiImageKeyHint:"اگه خالی بذاری، همون کلید API چتی که بالا زدی استفاده می‌شه — فقط اگه سرویس تصویرسازیت کلید جدا می‌خواد اینو پر کن.",
+    imageNotConfigured:"هنوز هیچ APIای برای تصویرسازی تنظیم نشده. برو تنظیمات → Connection → بخش تصویرسازی و آدرس و مدل رو پر کن.",
     apiImageModel:"مدل تصویرسازی (اختیاری)", apiImageModelPlaceholder:"مثلاً dall-e-3",
-    apiImageModelHint:"فقط برای دکمه‌ی تصویرسازی لازمه — به یه endpoint سازگار با OpenAI به اسم /images/generations نیاز داره (با کلید OpenAI کار می‌کنه؛ اکثر مدل‌های متنی رایگان OpenRouter این رو پشتیبانی نمی‌کنن).",
+    apiImageModelHint:"فقط برای دکمه‌ی تصویرسازی لازمه — به یه endpoint سازگار با OpenAI (مثل /images/generations) نیاز داره. اگه از قبل برای چت OpenRouter داری، ساده‌ترین گزینه همینه: https://openrouter.ai/api/v1/images با همون کلید — ارزونه (اغلب کمتر از یک سنت هر عکس) ولی رایگان نیست. آدرس خودِ OpenAI با dall-e-3 هم کار می‌کنه.",
     imageModeTitle:"ساخت تصویر", imageModeHint:"حالت تصویرسازی روشنه — تصویری که می‌خوای رو توضیح بده و بفرست.", imageGenerating:"در حال ساخت تصویر…",
     apiTutorialToggleLabel:"آموزش اتصال API (راهنمای کوتاه)",
     suggest1Title:"توضیح یک مفهوم", suggest1Desc:"نحوه‌ی کار ترنسفورمرها رو باز کن",
@@ -1336,7 +1363,7 @@ class SettingsManager{
       persona:"general", customSystemPrompt:"",
       enterToSend:true, showTimestamps:true, saveConversations:true,
       language:"en",
-      connectionMode:"local", apiUrl:"", apiKey:"", apiModel:"", apiImageModel:"",
+      connectionMode:"local", apiUrl:"", apiKey:"", apiModel:"", apiImageUrl:"", apiImageKey:"", apiImageModel:"",
       glassEffect:false,
       memoryEnabled:false,
       setupDone:false
@@ -1676,18 +1703,20 @@ class ApiEngine{
    *  the sibling …/v1/images/generations endpoint is derived. This works
    *  with OpenAI's own API (with an OpenAI key + a model like "dall-e-3");
    *  most OpenRouter free-tier text models do NOT support this endpoint. */
+  imageConfigured(){
+    const s = this.settings;
+    return !!(s.get("apiImageUrl") && s.get("apiImageModel"));
+  }
   async generateImage(prompt){
     const s = this.settings;
-    if(!this.isConfigured()){ const err = new Error("NOT_CONFIGURED"); err.code="NOT_CONFIGURED"; throw err; }
     if(!navigator.onLine){ const err = new Error("Offline"); err.code="OFFLINE"; throw err; }
-
-    const chatUrl = s.get("apiUrl");
-    const imageUrl = chatUrl.replace(/\/chat\/completions\/?$/i, "/images/generations");
-    if(imageUrl === chatUrl){
-      const err = new Error("Couldn't determine the image-generation endpoint from your API URL — it needs to end with /chat/completions for this to work automatically.");
+    if(!this.imageConfigured()){
+      const err = new Error("No image API URL and model are set. Open Settings → Connection and fill in the Image API section (e.g. OpenAI's own endpoint and dall-e-3 — OpenRouter's free tier does not support image generation).");
       err.code = "IMAGE_ENDPOINT_UNKNOWN"; throw err;
     }
-    const model = (s.get("apiImageModel")||"").trim() || "dall-e-3";
+    const imageUrl = s.get("apiImageUrl");
+    const model = s.get("apiImageModel").trim();
+    const imageKey = s.get("apiImageKey") || s.get("apiKey") || "";
 
     let res;
     try{
@@ -1695,12 +1724,16 @@ class ApiEngine{
         method:"POST",
         headers:{
           "Content-Type":"application/json",
-          ...(s.get("apiKey") ? {"Authorization":"Bearer "+s.get("apiKey")} : {})
+          ...(imageKey ? {"Authorization":"Bearer "+imageKey} : {})
         },
-        body: JSON.stringify({ model, prompt, n:1, size:"1024x1024" })
+        // Sends both OpenAI-style fields (model/prompt/n/size) and
+        // OpenRouter's Unified Image API fields (resolution/aspect_ratio) —
+        // harmless extras are ignored by whichever provider doesn't use them,
+        // so one request body works against either without per-provider code.
+        body: JSON.stringify({ model, prompt, n:1, size:"1024x1024", resolution:"1K", aspect_ratio:"1:1" })
       });
     }catch(networkErr){
-      const err = new Error("Network error — the API could not be reached"); err.code="NETWORK"; throw err;
+      const err = new Error("Network error — the image API could not be reached"); err.code="NETWORK"; throw err;
     }
 
     if(!res.ok){
@@ -1718,8 +1751,15 @@ class ApiEngine{
     let data;
     try{ data = await res.json(); }
     catch(e){ const err = new Error("Malformed API response"); err.code="EMPTY"; throw err; }
-    const item = data?.data?.[0];
-    const url = item?.url || (item?.b64_json ? ("data:image/png;base64,"+item.b64_json) : null);
+    // Different providers shape this differently — check the common variants
+    // (OpenAI-style "data[]", and OpenRouter's Unified Image API "images[]"
+    // and message-content shapes) rather than assuming just one.
+    const item = data?.data?.[0] || data?.images?.[0] || data?.choices?.[0]?.message?.images?.[0]?.image_url || null;
+    const url = (typeof item === "string" ? item : null)
+      || item?.url
+      || item?.image_url?.url
+      || (item?.b64_json ? ("data:image/png;base64,"+item.b64_json) : null)
+      || (item?.base64 ? ("data:image/png;base64,"+item.base64) : null);
     if(!url){ const err = new Error("No image returned"); err.code="EMPTY"; throw err; }
     return url;
   }
@@ -1965,7 +2005,8 @@ class UIManager{
       themeSeg:$("themeSeg"), languageSeg:$("languageSeg"), cfgGlassEffect:$("cfgGlassEffect"),
       cfgMemoryEnabled:$("cfgMemoryEnabled"), cfgMemoryCount:$("cfgMemoryCount"), cfgClearMemoryBtn:$("cfgClearMemoryBtn"),
       connectionModeSeg:$("connectionModeSeg"), apiFieldsWrap:$("apiFieldsWrap"),
-      cfgApiUrl:$("cfgApiUrl"), cfgApiKey:$("cfgApiKey"), cfgApiModel:$("cfgApiModel"), cfgApiImageModel:$("cfgApiImageModel"),
+      cfgApiUrl:$("cfgApiUrl"), cfgApiKey:$("cfgApiKey"), cfgApiModel:$("cfgApiModel"),
+      imageApiSection:$("imageApiSection"), cfgApiImageUrl:$("cfgApiImageUrl"), cfgApiImageModel:$("cfgApiImageModel"), cfgApiImageKey:$("cfgApiImageKey"),
       apiTutorialToggle:$("apiTutorialToggle"), apiTutorialWrap:$("apiTutorialWrap"), apiTutorialFrame:$("apiTutorialFrame"),
       cfgApiTutorialToggle:$("cfgApiTutorialToggle"), cfgApiTutorialWrap:$("cfgApiTutorialWrap"), cfgApiTutorialFrame:$("cfgApiTutorialFrame"),
       cfgModelStatusDot:$("cfgModelStatusDot"), cfgModelStatusText:$("cfgModelStatusText"), cfgGpuWarning:$("cfgGpuWarning"),
@@ -2008,6 +2049,7 @@ class UIManager{
       this.dom.connectionModeSeg.querySelectorAll("button").forEach(b=>b.classList.toggle("active", b.dataset.v===mode));
     }
     this.dom.apiFieldsWrap.style.display = mode === "api" ? "block" : "none";
+    this.dom.imageApiSection.style.display = mode === "api" ? "block" : "none";
     this.dom.imageModeBtn.style.display = mode === "api" ? "flex" : "none";
     if(mode !== "api" && this._imageMode){
       this._imageMode = false;
@@ -2098,7 +2140,9 @@ class UIManager{
     d.cfgApiUrl.addEventListener("change", ()=>{ this.settings.set("apiUrl", d.cfgApiUrl.value.trim()); });
     d.cfgApiKey.addEventListener("change", ()=>{ this.settings.set("apiKey", d.cfgApiKey.value.trim()); });
     d.cfgApiModel.addEventListener("change", ()=>{ this.settings.set("apiModel", d.cfgApiModel.value.trim()); this._updateModelStatusUI(); this.renderConversation(); });
+    d.cfgApiImageUrl.addEventListener("change", ()=>{ this.settings.set("apiImageUrl", d.cfgApiImageUrl.value.trim()); });
     d.cfgApiImageModel.addEventListener("change", ()=>{ this.settings.set("apiImageModel", d.cfgApiImageModel.value.trim()); });
+    d.cfgApiImageKey.addEventListener("change", ()=>{ this.settings.set("apiImageKey", d.cfgApiImageKey.value.trim()); });
     this._wireApiTutorialToggle(d.apiTutorialToggle, d.apiTutorialWrap, d.apiTutorialFrame);
     this._wireApiTutorialToggle(d.cfgApiTutorialToggle, d.cfgApiTutorialWrap, d.cfgApiTutorialFrame);
 
@@ -2385,7 +2429,9 @@ class UIManager{
     d.cfgApiUrl.value = s.get("apiUrl")||"";
     d.cfgApiKey.value = s.get("apiKey")||"";
     d.cfgApiModel.value = s.get("apiModel")||"";
+    d.cfgApiImageUrl.value = s.get("apiImageUrl")||"";
     d.cfgApiImageModel.value = s.get("apiImageModel")||"";
+    d.cfgApiImageKey.value = s.get("apiImageKey")||"";
     this._syncConnectionModeUI();
     this._updateComposerHint();
     this._updatePersonaPill();
@@ -2993,8 +3039,8 @@ class UIManager{
    *  and renders it as an assistant message. Only reachable while image mode
    *  is toggled on in the composer, which itself is only visible in API mode. */
   async _requestImageReply(convoId, prompt){
-    if(!this.apiEngine.isReady()){
-      this.chat.addMessage(convoId, { role:"assistant", content: t("enhanceNoEngine"), status:"error", errorTitle: t("notConnectedShort") });
+    if(!this.apiEngine.imageConfigured()){
+      this.chat.addMessage(convoId, { role:"assistant", content: t("imageNotConfigured"), status:"error", errorTitle: t("imageModeTitle") });
       this.renderConversation(); this.renderHistory();
       return;
     }
