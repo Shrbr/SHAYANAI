@@ -307,6 +307,10 @@ input,textarea,select{font-family:inherit;}
 }
 .generated-image{max-width:min(100%,420px);border-radius:14px;display:block;border:1px solid var(--border);}
 .generated-image-caption{font-size:12px;color:var(--text-2);margin-top:8px;}
+.generated-image-error{
+  padding:14px 16px;border-radius:12px;background:var(--danger-bg);border:1px solid rgba(248,113,113,.3);
+  color:var(--text-1);font-size:13px;max-width:320px;
+}
 .msg-content.streaming::after{
   content:"";display:inline-block;width:7px;height:14px;margin-left:2px;background:var(--accent-1);
   vertical-align:text-bottom;animation:blink 0.9s steps(2) infinite;border-radius:1px;
@@ -1161,13 +1165,14 @@ const I18N = {
     apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"e.g. openrouter/free",
     apiHint:"Points at any OpenAI-compatible chat/completions endpoint you control (e.g. your own key for Groq, OpenRouter, or a self-hosted server). Your key is stored only in this browser and sent only to the URL above.",
     imageApiHeader:"Image Generation",
-    imageApiIntro:"Separate from your chat API above — image generation almost always needs a different setup. The simplest option if you already use OpenRouter for chat: use https://openrouter.ai/api/v1/images with the same key (cheap, not free). OpenAI's own endpoint with dall-e-3 also works.",
-    apiImageUrl:"Image API URL", apiImageUrlPlaceholder:"https://openrouter.ai/api/v1/images",
+    imageApiIntro:"Separate from your chat API above — image generation almost always needs a different setup. Pre-filled with Pollinations (genuinely free, no signup, no key needed). OpenRouter's own image API (https://openrouter.ai/api/v1/images, same key as your chat setup) or OpenAI's endpoint with dall-e-3 also work, but cost a small amount per image.",
+    apiImageUrl:"Image API URL", apiImageUrlPlaceholder:"https://image.pollinations.ai/prompt",
     apiImageKey:"Image API key", apiImageKeyPlaceholder:"sk-…",
     apiImageKeyHint:"Leave blank to reuse your chat API key above — only fill this in if your image provider needs a different key.",
     imageNotConfigured:"No image API is set up yet. Open Settings → Connection → Image Generation and fill in the URL and model.",
-    apiImageModel:"Image model (optional)", apiImageModelPlaceholder:"e.g. dall-e-3",
-    apiImageModelHint:"Needs a real OpenAI-compatible /images/generations (or similar) endpoint. The simplest option if you already use OpenRouter for chat: https://openrouter.ai/api/v1/images with the same key — cheap (often under a cent per image) but not free. OpenAI's own endpoint with dall-e-3 also works.",
+    imageLoadFailed:"Couldn't load the generated image — the service may be busy or unavailable. Try again.",
+    apiImageModel:"Image model (optional)", apiImageModelPlaceholder:"e.g. flux",
+    apiImageModelHint:"Pre-filled with Pollinations (image.pollinations.ai) — genuinely free, no signup, no key. Leave the key field blank for it. For higher quality (paid), OpenRouter's image API or OpenAI's dall-e-3 also work here.",
     imageModeTitle:"Generate image", imageModeHint:"Image mode is on — describe the image you want, then send.", imageGenerating:"Generating image…",
     apiTutorialToggleLabel:"How to connect an API instead (short guide)",
     suggest1Title:"Explain a concept", suggest1Desc:"Break down how transformers work",
@@ -1234,13 +1239,14 @@ const I18N = {
     apiUrlPlaceholder:"https://api.example.com/v1/chat/completions", apiKeyPlaceholder:"sk-…", apiModelPlaceholder:"مثلاً openrouter/free",
     apiHint:"به هر endpoint سازگار با OpenAI که خودت کنترلش می‌کنی وصل می‌شه (مثلاً کلید خودت برای Groq، OpenRouter، یا سرور خودت). کلیدت فقط تو همین مرورگر ذخیره می‌شه و فقط به همون آدرس بالا فرستاده می‌شه.",
     imageApiHeader:"تصویرسازی",
-    imageApiIntro:"جدا از API چتی که بالا تنظیم کردی — تصویرسازی تقریباً همیشه به یه تنظیم دیگه نیاز داره. اگه از قبل برای چت OpenRouter داری، ساده‌ترین گزینه اینه: از https://openrouter.ai/api/v1/images با همون کلید استفاده کن (ارزونه، ولی رایگان نیست). آدرس خودِ OpenAI با dall-e-3 هم کار می‌کنه.",
-    apiImageUrl:"آدرس API تصویرسازی", apiImageUrlPlaceholder:"https://openrouter.ai/api/v1/images",
+    imageApiIntro:"جدا از API چتی که بالا تنظیم کردی — تصویرسازی تقریباً همیشه به یه تنظیم دیگه نیاز داره. از قبل با Pollinations پر شده (واقعاً رایگان، بدون ثبت‌نام، بدون کلید). گزینه‌ی تصویرسازی خودِ OpenRouter (همون کلید چتت) یا آدرس OpenAI با dall-e-3 هم کار می‌کنن، ولی هرکدوم یه‌کم پول می‌گیرن.",
+    apiImageUrl:"آدرس API تصویرسازی", apiImageUrlPlaceholder:"https://image.pollinations.ai/prompt",
     apiImageKey:"کلید API تصویرسازی", apiImageKeyPlaceholder:"sk-…",
     apiImageKeyHint:"اگه خالی بذاری، همون کلید API چتی که بالا زدی استفاده می‌شه — فقط اگه سرویس تصویرسازیت کلید جدا می‌خواد اینو پر کن.",
     imageNotConfigured:"هنوز هیچ APIای برای تصویرسازی تنظیم نشده. برو تنظیمات → Connection → بخش تصویرسازی و آدرس و مدل رو پر کن.",
-    apiImageModel:"مدل تصویرسازی (اختیاری)", apiImageModelPlaceholder:"مثلاً dall-e-3",
-    apiImageModelHint:"فقط برای دکمه‌ی تصویرسازی لازمه — به یه endpoint سازگار با OpenAI (مثل /images/generations) نیاز داره. اگه از قبل برای چت OpenRouter داری، ساده‌ترین گزینه همینه: https://openrouter.ai/api/v1/images با همون کلید — ارزونه (اغلب کمتر از یک سنت هر عکس) ولی رایگان نیست. آدرس خودِ OpenAI با dall-e-3 هم کار می‌کنه.",
+    imageLoadFailed:"تصویر ساخته‌شده بارگذاری نشد — ممکنه سرویس شلوغ یا در دسترس نباشه. دوباره امتحان کن.",
+    apiImageModel:"مدل تصویرسازی (اختیاری)", apiImageModelPlaceholder:"مثلاً flux",
+    apiImageModelHint:"از قبل با Pollinations (image.pollinations.ai) پر شده — واقعاً رایگان، بدون ثبت‌نام، بدون کلید. فیلد کلید رو براش خالی بذار. برای کیفیت بالاتر (پولی)، API تصویرسازی OpenRouter یا dall-e-3 خودِ OpenAI هم اینجا کار می‌کنن.",
     imageModeTitle:"ساخت تصویر", imageModeHint:"حالت تصویرسازی روشنه — تصویری که می‌خوای رو توضیح بده و بفرست.", imageGenerating:"در حال ساخت تصویر…",
     apiTutorialToggleLabel:"آموزش اتصال API (راهنمای کوتاه)",
     suggest1Title:"توضیح یک مفهوم", suggest1Desc:"نحوه‌ی کار ترنسفورمرها رو باز کن",
@@ -1711,12 +1717,23 @@ class ApiEngine{
     const s = this.settings;
     if(!navigator.onLine){ const err = new Error("Offline"); err.code="OFFLINE"; throw err; }
     if(!this.imageConfigured()){
-      const err = new Error("No image API URL and model are set. Open Settings → Connection and fill in the Image API section (e.g. OpenAI's own endpoint and dall-e-3 — OpenRouter's free tier does not support image generation).");
+      const err = new Error("No image API URL and model are set. Open Settings → Connection and fill in the Image API section.");
       err.code = "IMAGE_ENDPOINT_UNKNOWN"; throw err;
     }
     const imageUrl = s.get("apiImageUrl");
     const model = s.get("apiImageModel").trim();
     const imageKey = s.get("apiImageKey") || s.get("apiKey") || "";
+
+    // Pollinations serves images directly at a GET URL (no JSON request/response,
+    // no key needed) — the URL itself IS the image, so it can be used straight
+    // as an <img src>. This is a different shape from every other provider here,
+    // which all expect a POST with a JSON body and a JSON response back.
+    if(/pollinations\.ai/i.test(imageUrl)){
+      const base = imageUrl.replace(/\/+$/, "");
+      const seed = Math.floor(Math.random()*1e9); // avoids the browser/CDN caching an identical previous image for the same prompt
+      const qs = new URLSearchParams({ model: model || "flux", nologo: "true", width:"1024", height:"1024", seed:String(seed) });
+      return `${base}/${encodeURIComponent(prompt)}?${qs.toString()}`;
+    }
 
     let res;
     try{
@@ -2130,8 +2147,12 @@ class UIManager{
       if(btn.dataset.v === "api"){
         if(!this.settings.get("apiUrl")){ this.settings.set("apiUrl", "https://openrouter.ai/api/v1/chat/completions"); }
         if(!this.settings.get("apiModel")){ this.settings.set("apiModel", "openrouter/free"); }
+        if(!this.settings.get("apiImageUrl")){ this.settings.set("apiImageUrl", "https://image.pollinations.ai/prompt"); }
+        if(!this.settings.get("apiImageModel")){ this.settings.set("apiImageModel", "flux"); }
         d.cfgApiUrl.value = this.settings.get("apiUrl");
         d.cfgApiModel.value = this.settings.get("apiModel");
+        d.cfgApiImageUrl.value = this.settings.get("apiImageUrl");
+        d.cfgApiImageModel.value = this.settings.get("apiImageModel");
       }
       this._syncConnectionModeUI();
       this._updateModelStatusUI();
@@ -2429,6 +2450,10 @@ class UIManager{
     d.cfgApiUrl.value = s.get("apiUrl")||"";
     d.cfgApiKey.value = s.get("apiKey")||"";
     d.cfgApiModel.value = s.get("apiModel")||"";
+    if(s.get("connectionMode")==="api" && !s.get("apiImageUrl")){
+      s.set("apiImageUrl", "https://image.pollinations.ai/prompt");
+      s.set("apiImageModel", "flux");
+    }
     d.cfgApiImageUrl.value = s.get("apiImageUrl")||"";
     d.cfgApiImageModel.value = s.get("apiImageModel")||"";
     d.cfgApiImageKey.value = s.get("apiImageKey")||"";
@@ -2676,7 +2701,18 @@ class UIManager{
       if(m.status==="generating" && !m.content){
         content.innerHTML = `<span class="typing-dots"><span></span><span></span><span></span></span>` + (m.imagePending ? `<span class="thinking-label">${escapeHtml(t("imageGenerating"))}</span>` : "");
       } else if(m.imageUrl){
-        content.innerHTML = `<img class="generated-image" src="${escapeHtml(m.imageUrl)}" alt="${escapeHtml(m.content||"Generated image")}" loading="lazy">`;
+        const img = document.createElement("img");
+        img.className = "generated-image";
+        img.src = m.imageUrl;
+        img.alt = m.content || "Generated image";
+        img.loading = "lazy";
+        img.addEventListener("error", ()=>{
+          const fallback = document.createElement("div");
+          fallback.className = "generated-image-error";
+          fallback.textContent = t("imageLoadFailed");
+          img.replaceWith(fallback);
+        }, { once:true });
+        content.appendChild(img);
         if(m.content){
           const cap = document.createElement("div");
           cap.className = "generated-image-caption";
