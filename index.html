@@ -1168,7 +1168,7 @@ const I18N = {
     imageApiIntro:"Separate from your chat API above — image generation almost always needs a different setup. Pre-filled with Pollinations (genuinely free, no signup, no key needed). OpenRouter's own image API (https://openrouter.ai/api/v1/images, same key as your chat setup) or OpenAI's endpoint with dall-e-3 also work, but cost a small amount per image.",
     apiImageUrl:"Image API URL", apiImageUrlPlaceholder:"https://image.pollinations.ai/prompt",
     apiImageKey:"Image API key", apiImageKeyPlaceholder:"sk-…",
-    apiImageKeyHint:"Leave blank to reuse your chat API key above — only fill this in if your image provider needs a different key.",
+    apiImageKeyHint:"Leave blank to reuse your chat API key above. For Pollinations specifically, leave it blank unless you have a free account key from enter.pollinations.ai — without one, images work fine but include a small watermark.",
     imageNotConfigured:"No image API is set up yet. Open Settings → Connection → Image Generation and fill in the URL and model.",
     imageLoadFailed:"Couldn't load the generated image — the service may be busy or unavailable. Try again.",
     apiImageModel:"Image model (optional)", apiImageModelPlaceholder:"e.g. flux",
@@ -1242,7 +1242,7 @@ const I18N = {
     imageApiIntro:"جدا از API چتی که بالا تنظیم کردی — تصویرسازی تقریباً همیشه به یه تنظیم دیگه نیاز داره. از قبل با Pollinations پر شده (واقعاً رایگان، بدون ثبت‌نام، بدون کلید). گزینه‌ی تصویرسازی خودِ OpenRouter (همون کلید چتت) یا آدرس OpenAI با dall-e-3 هم کار می‌کنن، ولی هرکدوم یه‌کم پول می‌گیرن.",
     apiImageUrl:"آدرس API تصویرسازی", apiImageUrlPlaceholder:"https://image.pollinations.ai/prompt",
     apiImageKey:"کلید API تصویرسازی", apiImageKeyPlaceholder:"sk-…",
-    apiImageKeyHint:"اگه خالی بذاری، همون کلید API چتی که بالا زدی استفاده می‌شه — فقط اگه سرویس تصویرسازیت کلید جدا می‌خواد اینو پر کن.",
+    apiImageKeyHint:"اگه خالی بذاری، همون کلید API چتی که بالا زدی استفاده می‌شه. مخصوص Pollinations: خالی بذارش مگه یه کلید رایگان از enter.pollinations.ai داشته باشی — بدون کلید، عکس‌ها درست کار می‌کنن ولی یه واترمارک کوچیک دارن.",
     imageNotConfigured:"هنوز هیچ APIای برای تصویرسازی تنظیم نشده. برو تنظیمات → Connection → بخش تصویرسازی و آدرس و مدل رو پر کن.",
     imageLoadFailed:"تصویر ساخته‌شده بارگذاری نشد — ممکنه سرویس شلوغ یا در دسترس نباشه. دوباره امتحان کن.",
     apiImageModel:"مدل تصویرسازی (اختیاری)", apiImageModelPlaceholder:"مثلاً flux",
@@ -1731,7 +1731,14 @@ class ApiEngine{
     if(/pollinations\.ai/i.test(imageUrl)){
       const base = imageUrl.replace(/\/+$/, "");
       const seed = Math.floor(Math.random()*1e9); // avoids the browser/CDN caching an identical previous image for the same prompt
-      const qs = new URLSearchParams({ model: model || "flux", nologo: "true", width:"1024", height:"1024", seed:String(seed) });
+      const params = { model: model || "flux", width:"1024", height:"1024", seed:String(seed) };
+      // nologo needs an account — and since this URL is used directly as an
+      // <img src>, there's no way to send an Authorization header anyway, so
+      // any token has to go as a query param instead. Without a key, leave
+      // nologo out entirely — requesting it unauthenticated was causing the
+      // "couldn't load" failures (the server returns an error, not an image).
+      if(imageKey){ params.nologo = "true"; params.token = imageKey; }
+      const qs = new URLSearchParams(params);
       return `${base}/${encodeURIComponent(prompt)}?${qs.toString()}`;
     }
 
