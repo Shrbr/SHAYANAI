@@ -1,4 +1,4 @@
-const SHELL_CACHE = "shayan-ai-shell-v8";
+const SHELL_CACHE = "shayan-ai-shell-v9";
 const SHELL_FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -17,6 +17,7 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
+  if (new URL(e.request.url).origin !== self.location.origin) return; // let web-search and other cross-origin requests go straight to the network
   e.respondWith(
     caches.open(SHELL_CACHE).then(async (cache) => {
       const cached = await cache.match(e.request);
