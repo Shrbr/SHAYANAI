@@ -1,4 +1,5 @@
-const SHELL_CACHE = "shayan-ai-shell-v10";
+const SHELL_CACHE = "shayan-ai-shell-v12";
+const SHARE_CACHE = "shayan-ai-share-inbox";
 const SHELL_FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -9,13 +10,39 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== SHELL_CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== SHELL_CACHE && k !== SHARE_CACHE).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
+// Share target: the phone's Share sheet POSTs text/link/files here. They are parked in a
+// temporary cache (browser-only), then the app opens and imports + deletes them.
+async function handleShare(request) {
+  const scope = self.registration.scope;
+  try {
+    const form = await request.formData();
+    await caches.delete(SHARE_CACHE);
+    const cache = await caches.open(SHARE_CACHE);
+    const meta = { title: String(form.get("title") || ""), text: String(form.get("text") || ""), url: String(form.get("url") || "") };
+    await cache.put(new URL("share-inbox/meta", scope).href, new Response(JSON.stringify(meta), { headers: { "Content-Type": "application/json" } }));
+    const files = form.getAll("files").filter((f) => typeof f !== "string").slice(0, 4);
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      await cache.put(new URL("share-inbox/file-" + i, scope).href, new Response(f, {
+        headers: { "Content-Type": f.type || "application/octet-stream", "X-Name": encodeURIComponent(f.name || "file") }
+      }));
+    }
+  } catch (err) { /* open the app anyway */ }
+  return Response.redirect(new URL("./?share=1", scope).href, 303);
+}
+
 self.addEventListener("fetch", (e) => {
+  const reqUrl = new URL(e.request.url);
+  if (e.request.method === "POST" && reqUrl.origin === self.location.origin && reqUrl.pathname.endsWith("/share-target")) {
+    e.respondWith(handleShare(e.request));
+    return;
+  }
   if (e.request.method !== "GET") return;
   // Cross-origin requests (web search, fonts, model files) go straight to the network.
   if (new URL(e.request.url).origin !== self.location.origin) return;

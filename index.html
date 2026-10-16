@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://esm.run https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: http: ws: wss: blob: data:; worker-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'">
+<meta name="referrer" content="no-referrer">
+<script>if(window.top!==window.self){document.documentElement.style.display="none";try{window.top.location=window.self.location;}catch(e){}}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0B0E14">
 <title>Shayan AI</title>
@@ -1063,9 +1066,18 @@ body.glass-mode .msg-content{ padding:10px 14px !important; border-radius:14px !
         <button class="btn btn-block" id="cfgClearMemoryBtn" data-i18n="clearMemory">Clear memory</button>
       </section>
 
+      <section class="settings-section" id="lockSection">
+        <h3 data-i18n="lockHeader">App lock</h3>
+        <div class="settings-row-desc" style="margin-bottom:10px;" data-i18n="lockDesc">Protect your chats, memory, settings, API keys and attached files with a passcode. Everything is encrypted in this browser (AES-256) and the passcode itself is never stored — if you forget it, the data can't be recovered.</div>
+        <div class="settings-row-desc" id="lockStatus" style="margin-bottom:10px;font-weight:600;"></div>
+        <button class="btn btn-block" id="lockEnableBtn" style="margin-bottom:8px;" data-i18n="lockEnable">Set a passcode</button>
+        <button class="btn btn-block" id="lockNowBtn" style="margin-bottom:8px;display:none;" data-i18n="lockNow">Lock now</button>
+        <button class="btn btn-block" id="lockDisableBtn" style="display:none;" data-i18n="lockDisable">Remove passcode</button>
+      </section>
+
       <section class="settings-section">
         <h3 data-i18n="privacyHeader">Privacy</h3>
-        <div class="settings-row-desc" style="margin-bottom:10px;" data-i18n="privacyDesc">All data — conversations, settings, and the model itself — lives only in this browser. Nothing is ever sent to a server.</div>
+        <div class="settings-row-desc" style="margin-bottom:10px;" data-i18n="privacyDesc">Conversations, settings and attached files live only in this browser. Text leaves your device only when you choose an API connection, web search or image generation — and then only to that service.</div>
         <button class="btn btn-block" id="clearHistoryBtn" style="margin-bottom:8px;" data-i18n="clearHistory">Clear conversation history</button>
         <button class="btn btn-block" id="clearAllBtn" style="color:var(--danger);border-color:rgba(248,113,113,.3);" data-i18n="clearAllData">Clear all local data</button>
       </section>
@@ -1125,6 +1137,19 @@ const AI_CONFIG = {
    ============================================================ */
 const API_TUTORIAL_HTML = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">\n<meta name=\"theme-color\" content=\"#0B0E14\">\n<title>Shayan AI \u2014 Connect an API</title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Vazirmatn:wght@400;500;600;700&display=swap\" rel=\"stylesheet\">\n<style>\n:root{\n  --bg-0:#0B0E14; --bg-1:#10141D; --bg-2:#161B26;\n  --surface:rgba(255,255,255,0.05); --surface-solid:#151A24;\n  --border:rgba(255,255,255,0.09); --border-strong:rgba(255,255,255,0.15);\n  --text-0:#EDEFF5; --text-1:#B7BECC; --text-2:#7C8494;\n  --accent-1:#7C5CFF; --accent-2:#22D3EE;\n  --success:#34D399;\n  --accent-grad:linear-gradient(135deg,#7C5CFF 0%,#22D3EE 100%);\n  --font-display:'Sora',system-ui,sans-serif;\n  --font-body:'Inter',system-ui,sans-serif;\n  --font-fa:'Vazirmatn',system-ui,sans-serif;\n  --font-mono:'JetBrains Mono',ui-monospace,monospace;\n}\n*{box-sizing:border-box;}\nhtml,body{margin:0;height:100%;background:#000;overflow:hidden;}\nbody{font-family:var(--font-body);width:100vw;height:100vh;}\n\n#stage{\n  position:relative;width:100vw;height:100dvh;\n  background:\n    radial-gradient(1200px 700px at 20% -10%, rgba(124,92,255,0.16), transparent 60%),\n    radial-gradient(1000px 600px at 100% 110%, rgba(34,211,238,0.12), transparent 55%),\n    var(--bg-0);\n  overflow:hidden;\n}\n.grain{\n  position:absolute;inset:0;pointer-events:none;opacity:.025;mix-blend-mode:overlay;\n  background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\");\n}\n\n.scene{\n  position:absolute;inset:0;\n  display:flex;flex-direction:column;align-items:center;justify-content:center;\n  opacity:0;pointer-events:none;\n  transition:opacity 900ms cubic-bezier(.2,.7,.2,1);\n}\n.scene.active{opacity:1;}\n\n.caption-wrap{\n  position:absolute;left:0;right:0;bottom:6.5%;\n  display:flex;flex-direction:column;align-items:center;gap:6px;\n  padding:0 8%;text-align:center;z-index:50;\n}\n.cap-en, .cap-fa{opacity:0;transform:translateY(10px);transition:opacity 600ms ease, transform 600ms ease;}\n.scene.active .cap-en, .scene.active .cap-fa{ opacity:1; transform:translateY(0); transition-delay:400ms; }\n.cap-en{font-family:var(--font-display); font-weight:700; font-size:clamp(14px,2.4vw,18px); color:var(--text-0); letter-spacing:-0.01em;}\n.cap-fa{font-family:var(--font-fa); font-weight:500; font-size:clamp(12px,2vw,15px); color:var(--text-1); direction:rtl;}\n.cap-bar{width:36px;height:3px;border-radius:3px;background:var(--accent-grad);opacity:0; transform:scaleX(0); transition:opacity 500ms ease, transform 600ms cubic-bezier(.2,.7,.2,1);margin-bottom:2px;}\n.scene.active .cap-bar{ opacity:1; transform:scaleX(1); transition-delay:250ms; }\n\n#dots{position:absolute; top:5%; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:60;}\n#dots span{width:20px;height:3px;border-radius:3px;background:rgba(255,255,255,0.14);overflow:hidden;position:relative;}\n#dots span i{position:absolute;inset:0;background:var(--accent-grad);transform-origin:left;transform:scaleX(0);}\n#dots span.done i{transform:scaleX(1);transition:none;}\n#dots span.active i{transform:scaleX(0);animation:fillDot linear forwards;}\n\n.brand-row{display:flex;align-items:center;gap:10px;}\n.orb{width:30px;height:30px;border-radius:9px;background:var(--accent-grad);position:relative;flex:none;box-shadow:0 4px 18px rgba(124,92,255,0.45);}\n.orb::after{content:\"\";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.6), transparent 55%);animation:pulse 2.6s ease-in-out infinite;}\n@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}\n.brand-name{font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text-0);}\n.brand-name b{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}\n\n/* ===== Intro ===== */\n#scene-intro .orb-big{\n  width:76px;height:76px;border-radius:24px;background:var(--accent-grad);\n  box-shadow:0 20px 60px rgba(124,92,255,0.4);position:relative;margin-bottom:20px;\n  animation:introScale 1400ms cubic-bezier(.2,.7,.2,1);\n}\n#scene-intro .orb-big::after{content:\"\";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 30% 25%, rgba(255,255,255,0.65), transparent 55%);animation:pulse 2.6s ease-in-out infinite;}\n@keyframes introScale{from{transform:scale(0.3);opacity:0;}to{transform:scale(1);opacity:1;}}\n#scene-intro h1{font-family:var(--font-display);font-weight:800;font-size:clamp(24px,5.4vw,36px);color:var(--text-0);margin:0;letter-spacing:-0.02em;text-align:center;opacity:0;animation:riseIn 900ms cubic-bezier(.2,.7,.2,1) 300ms forwards;}\n#scene-intro h1 b{background:var(--accent-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}\n@keyframes riseIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}\n\n/* ===== Shared settings-card mockup ===== */\n.settings-card{\n  width:min(82vw, 320px); background:var(--surface-solid); border:1px solid var(--border-strong);\n  border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,0.45); overflow:hidden;\n}\n.sc-top{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);}\n.sc-top .sc-brand{display:flex;align-items:center;gap:8px;}\n.sc-top .sc-brand .dotb{width:16px;height:16px;border-radius:5px;background:var(--accent-grad);}\n.sc-top .sc-brand span{font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--text-0);}\n.sc-top .sc-back{width:20px;height:20px;color:var(--text-2);}\n.sc-body{padding:14px;}\n.sc-row-label{font-size:10.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}\n.sc-conn-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;}\n.sc-conn-row .lbl{font-size:12.5px;color:var(--text-0);font-weight:600;}\n.seg-mock{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:2px;position:relative;}\n.seg-mock span{font-size:10.5px;color:var(--text-2);padding:5px 10px;border-radius:7px;position:relative;z-index:1;transition:color 500ms ease;}\n.seg-mock .seg-knob{position:absolute;top:2px;bottom:2px;left:2px;width:44px;border-radius:7px;background:var(--accent-grad);transition:transform 550ms cubic-bezier(.2,.7,.2,1);z-index:0;}\n.seg-mock.on-api .seg-knob{transform:translateX(44px);}\n.seg-mock.on-api span:first-child{color:var(--text-2);}\n.seg-mock.on-api span:last-child{color:#fff;}\n.seg-mock:not(.on-api) span:first-child{color:#fff;}\n\n.field-mock{margin-top:12px;}\n.field-mock label{display:block;font-size:10px;color:var(--text-2);margin-bottom:5px;font-family:var(--font-mono);}\n.field-mock .box{\n  background:var(--surface);border:1px solid var(--border-strong);border-radius:9px;padding:9px 11px;\n  font-size:11.5px;color:var(--text-0);font-family:var(--font-mono);white-space:nowrap;overflow:hidden;\n  min-height:16px;\n}\n.field-mock .box .caret{display:inline-block;width:2px;height:12px;background:var(--accent-1);vertical-align:middle;margin-left:1px;animation:blink 0.9s steps(2) infinite;}\n@keyframes blink{50%{opacity:0;}}\n.fields-wrap{opacity:0;transform:translateY(6px);transition:opacity 500ms ease, transform 500ms ease;}\n.fields-wrap.show{opacity:1;transform:translateY(0);}\n\n.save-btn-mock{\n  margin-top:16px;width:100%;padding:10px;border-radius:10px;background:var(--surface);border:1px solid var(--border-strong);\n  display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--text-1);font-weight:600;\n  transition:background 400ms ease, border-color 400ms ease, color 400ms ease;\n}\n.save-btn-mock.ready{background:var(--accent-grad);border-color:transparent;color:#fff;box-shadow:0 6px 20px rgba(124,92,255,0.35);}\n.save-btn-mock svg{width:14px;height:14px;}\n\n/* ===== Success scene ===== */\n.success-wrap{display:flex;flex-direction:column;align-items:center;}\n.check-circle{\n  width:74px;height:74px;border-radius:50%;background:rgba(52,211,153,0.12);border:2px solid var(--success);\n  display:flex;align-items:center;justify-content:center;margin-bottom:20px;\n  animation:popIn 650ms cubic-bezier(.2,.8,.3,1);\n}\n.check-circle svg{width:34px;height:34px;color:var(--success);stroke-dasharray:40;stroke-dashoffset:40;animation:drawCheck 500ms 300ms ease forwards;}\n@keyframes drawCheck{to{stroke-dashoffset:0;}}\n@keyframes popIn{0%{transform:scale(0.4);opacity:0;}70%{transform:scale(1.08);}100%{transform:scale(1);opacity:1;}}\n.success-title{font-family:var(--font-display);font-weight:800;font-size:clamp(18px,3.6vw,24px);color:var(--text-0);margin:0;}\n\n/* ===== Outro ===== */\n#scene-outro .brand-row{margin-bottom:18px;transform:scale(1.15);}\n#scene-outro .credit{font-family:var(--font-body); font-size:12px; color:var(--text-2); letter-spacing:.02em;}\n#scene-outro .credit b{color:var(--text-1);font-weight:600;}\n#scene-outro .credit-fa{font-family:var(--font-fa); font-size:12px; color:var(--text-2); margin-top:2px; direction:rtl;}\n.tagline{font-size:12.5px;color:var(--text-2);margin-top:8px;text-align:center;}\n\n@media (prefers-reduced-motion: reduce){\n  *,*::before,*::after{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}\n}\n</style>\n</head>\n<body>\n<div id=\"stage\">\n  <div class=\"grain\"></div>\n  <div id=\"dots\"></div>\n\n  <\!-- SCENE 1: INTRO -->\n  <section class=\"scene active\" id=\"scene-intro\">\n    <div class=\"orb-big\"></div>\n    <h1>Connect an <b>API</b></h1>\n    <div class=\"caption-wrap\">\n      <div class=\"cap-bar\"></div>\n      <div class=\"cap-en\">Optional \u2014 for faster, stronger replies</div>\n      <div class=\"cap-fa\">\u0627\u062e\u062a\u06cc\u0627\u0631\u06cc\u0647 \u2014 \u0628\u0631\u0627\u06cc \u062c\u0648\u0627\u0628\u200c\u0647\u0627\u06cc \u0633\u0631\u06cc\u0639\u200c\u062a\u0631 \u0648 \u0642\u0648\u06cc\u200c\u062a\u0631</div>\n    </div>\n  </section>\n\n  <\!-- SCENE 2: OPEN SETTINGS -->\n  <section class=\"scene\" id=\"scene-open\">\n    <div class=\"settings-card\">\n      <div class=\"sc-top\">\n        <div class=\"sc-brand\"><div class=\"dotb\"></div><span>Settings</span></div>\n        <svg class=\"sc-back\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M18 6L6 18M6 6l12 12\"/></svg>\n      </div>\n      <div class=\"sc-body\">\n        <div class=\"sc-row-label\">Connection</div>\n        <div class=\"sc-conn-row\">\n          <span class=\"lbl\" id=\"connLabel\">Mode</span>\n          <div class=\"seg-mock\" id=\"segMock\"><div class=\"seg-knob\"></div><span>Local</span><span>API</span></div>\n        </div>\n      </div>\n    </div>\n    <div class=\"caption-wrap\">\n      <div class=\"cap-bar\"></div>\n      <div class=\"cap-en\">Open Settings \u2192 Connection</div>\n      <div class=\"cap-fa\">\u0628\u0631\u0648 \u062a\u0646\u0638\u06cc\u0645\u0627\u062a \u2192 \u0627\u062a\u0635\u0627\u0644</div>\n    </div>\n  </section>\n\n  <\!-- SCENE 3: SWITCH TO API + FILL FIELDS -->\n  <section class=\"scene\" id=\"scene-fields\">\n    <div class=\"settings-card\">\n      <div class=\"sc-top\">\n        <div class=\"sc-brand\"><div class=\"dotb\"></div><span>Settings</span></div>\n        <svg class=\"sc-back\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M18 6L6 18M6 6l12 12\"/></svg>\n      </div>\n      <div class=\"sc-body\">\n        <div class=\"sc-row-label\">Connection</div>\n        <div class=\"sc-conn-row\">\n          <span class=\"lbl\">Mode</span>\n          <div class=\"seg-mock on-api\"><div class=\"seg-knob\"></div><span>Local</span><span>API</span></div>\n        </div>\n        <div class=\"fields-wrap\" id=\"fieldsWrap\">\n          <div class=\"field-mock\">\n            <label>API URL</label>\n            <div class=\"box\"><span id=\"typeUrl\"></span></div>\n          </div>\n          <div class=\"field-mock\">\n            <label>MODEL NAME</label>\n            <div class=\"box\"><span id=\"typeModel\"></span></div>\n          </div>\n          <div class=\"field-mock\">\n            <label>API KEY</label>\n            <div class=\"box\"><span id=\"typeKey\"></span></div>\n          </div>\n          <div class=\"save-btn-mock\" id=\"saveBtn\">\n            <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6L9 17l-5-5\"/></svg>\n            <span>Save</span>\n          </div>\n        </div>\n      </div>\n    </div>\n    <div class=\"caption-wrap\">\n      <div class=\"cap-bar\"></div>\n      <div class=\"cap-en\" id=\"capEn2\">Switch to API and paste your details</div>\n      <div class=\"cap-fa\" id=\"capFa2\">\u0628\u0647 API \u0633\u0648\u06cc\u06cc\u0686 \u06a9\u0646 \u0648 \u0627\u0637\u0644\u0627\u0639\u0627\u062a\u062a \u0631\u0648 \u0648\u0627\u0631\u062f \u06a9\u0646</div>\n    </div>\n  </section>\n\n  <\!-- SCENE 4: SUCCESS -->\n  <section class=\"scene\" id=\"scene-success\">\n    <div class=\"success-wrap\">\n      <div class=\"check-circle\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 6L9 17l-5-5\"/></svg></div>\n      <h2 class=\"success-title\">Connected!</h2>\n    </div>\n    <div class=\"caption-wrap\">\n      <div class=\"cap-bar\"></div>\n      <div class=\"cap-en\">You're set \u2014 start chatting through your API</div>\n      <div class=\"cap-fa\">\u062a\u0645\u0648\u0645\u0647 \u2014 \u062d\u0627\u0644\u0627 \u0627\u0632 \u0637\u0631\u06cc\u0642 API\u200c\u062a \u0686\u062a \u06a9\u0646</div>\n    </div>\n  </section>\n\n  <\!-- SCENE 5: OUTRO -->\n  <section class=\"scene\" id=\"scene-outro\">\n    <div class=\"brand-row\">\n      <div class=\"orb\"></div>\n      <div class=\"brand-name\">Shayan <b>AI</b></div>\n    </div>\n    <div class=\"tagline\">No API needed \u2014 but here's how, if you want one.</div>\n    <div class=\"caption-wrap\" style=\"bottom:8%;\">\n      <div class=\"credit\">Created by <b>Shayan Ramezani</b></div>\n      <div class=\"credit-fa\">\u0633\u0627\u062e\u062a\u0647\u200c\u0634\u062f\u0647 \u062a\u0648\u0633\u0637 \u0634\u0627\u06cc\u0627\u0646 \u0631\u0645\u0636\u0627\u0646\u06cc</div>\n    </div>\n  </section>\n</div>\n\n<\script>\n(function(){\n\"use strict\";\nconst scenes = [\"scene-intro\",\"scene-open\",\"scene-fields\",\"scene-success\",\"scene-outro\"];\nconst durations = [2600, 2800, 6200, 2600, 3400];\nlet idx = 0;\n\nconst dotsWrap = document.getElementById(\"dots\");\nscenes.forEach(()=>{ const d=document.createElement(\"span\"); const i=document.createElement(\"i\"); d.appendChild(i); dotsWrap.appendChild(d); });\nconst dotEls = Array.from(dotsWrap.children);\n\nfunction setDots(){\n  dotEls.forEach((d,i)=>{\n    d.classList.remove(\"active\",\"done\");\n    d.querySelector(\"i\").style.animation = \"none\";\n    if(i < idx) d.classList.add(\"done\");\n    if(i === idx){\n      d.classList.add(\"active\");\n      void d.offsetWidth;\n      d.querySelector(\"i\").style.animation = `fillDot ${durations[idx]}ms linear forwards`;\n    }\n  });\n}\nconst styleTag = document.createElement(\"style\");\ndocument.head.appendChild(styleTag);\nstyleTag.textContent = `@keyframes fillDot{from{transform:scaleX(0);}to{transform:scaleX(1);}}`;\n\nfunction showScene(i){\n  scenes.forEach((id,n)=> document.getElementById(id).classList.toggle(\"active\", n===i));\n  setDots();\n  if(scenes[i] === \"scene-fields\") runFieldsAnimation();\n}\n\nfunction loop(){\n  showScene(idx);\n  setTimeout(()=>{ idx = (idx+1) % scenes.length; loop(); }, durations[idx]);\n}\n\n/* Scene 3: type URL, model, key one after another, then reveal Save button as ready */\nfunction typeInto(el, text, speed, cb){\n  el.innerHTML = '<span class=\"caret\"></span>';\n  let i = 0;\n  const iv = setInterval(()=>{\n    i++;\n    el.innerHTML = escapeHtml(text.slice(0,i)) + '<span class=\"caret\"></span>';\n    if(i >= text.length){ clearInterval(iv); el.innerHTML = escapeHtml(text); cb && cb(); }\n  }, speed);\n}\nfunction escapeHtml(s){ return s.replace(/&/g,\"&amp;\").replace(/</g,\"&lt;\").replace(/>/g,\"&gt;\"); }\n\nfunction runFieldsAnimation(){\n  const wrap = document.getElementById(\"fieldsWrap\");\n  const urlEl = document.getElementById(\"typeUrl\");\n  const modelEl = document.getElementById(\"typeModel\");\n  const keyEl = document.getElementById(\"typeKey\");\n  const saveBtn = document.getElementById(\"saveBtn\");\n  wrap.classList.remove(\"show\");\n  saveBtn.classList.remove(\"ready\");\n  urlEl.innerHTML = \"\"; modelEl.innerHTML = \"\"; keyEl.innerHTML = \"\";\n  void wrap.offsetWidth;\n  setTimeout(()=> wrap.classList.add(\"show\"), 550);\n  setTimeout(()=>{\n    typeInto(urlEl, \"https://openrouter.ai/api/v1/chat/completions\", 14, ()=>{\n      setTimeout(()=>{\n        typeInto(modelEl, \"openrouter/free\", 40, ()=>{\n          setTimeout(()=>{\n            typeInto(keyEl, \"sk-or-\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\", 30, ()=>{\n              setTimeout(()=> saveBtn.classList.add(\"ready\"), 300);\n            });\n          }, 250);\n        });\n      }, 250);\n    });\n  }, 900);\n}\n\nloop();\n})();\n<\/script>\n</body>\n</html>\n";
 
+/** API keys are only ever sent over https:// (or http:// to localhost / your own network). */
+function assertSafeApiUrl(raw){
+  let u;
+  try{ u = new URL(String(raw || "").trim()); }
+  catch(e){ const err = new Error("The API URL isn't a valid address."); err.code = "INSECURE_URL"; throw err; }
+  const host = u.hostname.replace(/^\[|\]$/g, "");
+  const isLocal = host === "localhost" || host === "127.0.0.1" || host === "::1" || host.endsWith(".local")
+    || /^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+  if(u.protocol === "https:" || (u.protocol === "http:" && isLocal)) return u.href;
+  const err = new Error("For safety the API URL must start with https:// — http:// is only allowed for localhost or your own network, so your key never travels in clear text.");
+  err.code = "INSECURE_URL"; throw err;
+}
+
 const MODEL_TIERS = [
   { tier:"fast",     label:"Fast & Light", meta:"~1 GB · quickest",                id:"Qwen2.5-1.5B-Instruct-q4f16_1-MLC", matchPatterns:["Qwen2.5-1.5B-Instruct"], fallbackMatchPatterns:["Llama-3.2-1B-Instruct"] },
   { tier:"balanced", label:"Balanced",     meta:"~2 GB · recommended",             id:"Qwen2.5-3B-Instruct-q4f16_1-MLC",   matchPatterns:["Qwen2.5-3B-Instruct"],   fallbackMatchPatterns:["Llama-3.2-3B-Instruct"] },
@@ -1176,7 +1201,7 @@ const I18N = {
     memoryHeader:"Memory", memoryEnabled:"Remember across chats", memoryEnabledDesc:"Best-effort — the model pulls out a few lasting facts when you leave a conversation and recalls them in future ones",
     memoryCountZero:"0 memories saved", memoryCountSuffix:"memories saved", clearMemory:"Clear memory",
     clearMemoryTitle:"Clear memory?", clearMemoryBody:"All remembered facts from past conversations will be permanently deleted. This cannot be undone.", memoryCleared:"Memory cleared",
-    privacyHeader:"Privacy", privacyDesc:"All data — conversations, settings, and the model itself — lives only in this browser. Nothing is ever sent to a server.",
+    privacyHeader:"Privacy", privacyDesc:"Conversations, settings and attached files live only in this browser. Text leaves your device only when you choose an API connection, web search or image generation — and then only to that service.",
     clearHistory:"Clear conversation history", clearAllData:"Clear all local data",
     aboutHeader:"About", aboutDesc:"Shayan AI — a fully independent, on-device AI assistant created by Shayan Ramezani. It runs its own model locally via WebGPU (WebLLM). No API, no key, no backend, no internet needed after the first download.",
     loadingModel:"Loading model…", loadedPrefix:"Loaded: ", noModelLoaded:"No model loaded",
@@ -1214,6 +1239,15 @@ const I18N = {
     searchOffline:"You're offline — answering without web search.",
     searchNeedKey:"Add a search API key in Settings → Web Search — answering without it.",
     searchModeHint:"Web search is on — answers can use fresh results from the internet.", sources:"Sources",
+    shareReceived:"Shared content added to the message box — check it and press send.",
+    lockHeader:"App lock",
+    lockDesc:"Protect your chats, memory, settings, API keys and attached files with a passcode. Everything is encrypted in this browser (AES-256) and the passcode itself is never stored — if you forget it, the data can't be recovered.",
+    lockStatusOn:"Passcode lock is ON ✓", lockStatusOff:"No passcode set",
+    lockEnable:"Set a passcode", lockDisable:"Remove passcode", lockNow:"Lock now",
+    lockSetTitle:"Choose a passcode", lockEnterTitle:"Enter your passcode to remove it",
+    lockPass:"Passcode", lockPass2:"Repeat passcode", lockTooShort:"Use at least 8 characters.", lockMismatch:"The passcodes don't match.",
+    lockWrong:"Wrong passcode.", lockOnToast:"Passcode lock is on.", lockOffToast:"Passcode removed.",
+    lockFailed:"Couldn't turn on the lock.", lockUnsupported:"Passcode lock needs a secure (https) browser.", lockOk:"OK", lockCancel:"Cancel",
     attachTitle:"Attach a file",
     attachHint:"Files stay in this browser. In API mode their text is sent to your API provider along with your message.",
     attachUnsupported:"This file type isn't supported. Use text, code, CSV/JSON, Word (.docx) files, or images (API mode).",
@@ -1267,7 +1301,7 @@ const I18N = {
     memoryHeader:"حافظه", memoryEnabled:"یادآوری بین چت‌ها", memoryEnabledDesc:"تلاش بهترین‌حالت — وقتی از یه گفتگو خارج می‌شی، مدل چندتا واقعیت ماندگار ازش استخراج می‌کنه و تو گفتگوهای بعدی یادش می‌مونه",
     memoryCountZero:"هیچ حافظه‌ای ذخیره نشده", memoryCountSuffix:"حافظه ذخیره شده", clearMemory:"پاک‌کردن حافظه",
     clearMemoryTitle:"حافظه پاک بشه؟", clearMemoryBody:"همه‌ی واقعیت‌های به‌خاطرسپرده‌شده از گفتگوهای قبلی برای همیشه پاک می‌شن. این کار برگشت‌پذیر نیست.", memoryCleared:"حافظه پاک شد",
-    privacyHeader:"حریم خصوصی", privacyDesc:"همه‌چیز — گفتگوها، تنظیمات و خود مدل — فقط توی همین مرورگر می‌مونه. هیچی به هیچ سروری فرستاده نمی‌شه.",
+    privacyHeader:"حریم خصوصی", privacyDesc:"گفتگوها، تنظیمات و فایل‌های پیوست فقط توی همین مرورگر می‌مونن. متن فقط وقتی از دستگاهت بیرون می‌ره که اتصال API، جستجوی وب یا ساخت تصویر رو انتخاب کنی، و اون هم فقط برای همون سرویس.",
     clearHistory:"پاک‌کردن تاریخچه‌ی گفتگوها", clearAllData:"پاک‌کردن همه‌ی داده‌های محلی",
     aboutHeader:"درباره", aboutDesc:"Shayan AI — یک دستیار هوش مصنوعی کاملاً مستقل و روی‌دستگاه که Shayan Ramezani ساختتش. مدل خودش رو محلی با WebGPU (از طریق WebLLM) اجرا می‌کنه. بدون API، بدون کلید، بدون بک‌اند، بعد از اولین دانلود به اینترنت هم نیاز نداره.",
     loadingModel:"در حال بارگذاری مدل…", loadedPrefix:"بارگذاری‌شده: ", noModelLoaded:"مدلی بارگذاری نشده",
@@ -1305,6 +1339,15 @@ const I18N = {
     searchOffline:"آفلاینی — بدون جستجوی وب جواب می‌دم.",
     searchNeedKey:"توی تنظیمات ← جستجوی وب کلید API بذار — فعلاً بدون جستجو جواب می‌دم.",
     searchModeHint:"جستجوی وب روشنه — جواب‌ها می‌تونن از نتایج تازه‌ی اینترنت استفاده کنن.", sources:"منابع",
+    shareReceived:"محتوای اشتراکی توی کادر پیام اومد — نگاهش کن و ارسال رو بزن.",
+    lockHeader:"قفل برنامه",
+    lockDesc:"گفتگوها، حافظه، تنظیمات، کلیدهای API و فایل‌های پیوست رو با یه رمز عبور محافظت کن. همه‌چیز توی همین مرورگر رمزنگاری می‌شه (AES-256) و خود رمز هیچ‌جا ذخیره نمی‌شه — اگه فراموشش کنی، داده‌ها قابل بازیابی نیستن.",
+    lockStatusOn:"قفل رمزی روشنه ✓", lockStatusOff:"رمزی تنظیم نشده",
+    lockEnable:"تنظیم رمز عبور", lockDisable:"برداشتن رمز عبور", lockNow:"همین حالا قفل کن",
+    lockSetTitle:"یه رمز عبور انتخاب کن", lockEnterTitle:"برای برداشتن قفل، رمز عبور رو وارد کن",
+    lockPass:"رمز عبور", lockPass2:"تکرار رمز عبور", lockTooShort:"حداقل ۸ کاراکتر بذار.", lockMismatch:"دو رمز با هم یکی نیستن.",
+    lockWrong:"رمز عبور اشتباهه.", lockOnToast:"قفل رمزی روشن شد.", lockOffToast:"رمز برداشته شد.",
+    lockFailed:"روشن کردن قفل انجام نشد.", lockUnsupported:"قفل رمزی فقط توی مرورگر امن (https) کار می‌کنه.", lockOk:"تأیید", lockCancel:"انصراف",
     attachTitle:"پیوست فایل",
     attachHint:"فایل‌ها فقط توی همین مرورگر می‌مونن. توی حالت API متن فایل همراه پیامت برای سرویس API شما فرستاده می‌شه.",
     attachUnsupported:"این نوع فایل پشتیبانی نمی‌شه. فایل متنی، کد، CSV/JSON، ورد (.docx) یا عکس (حالت API) بفرست.",
@@ -1383,45 +1426,215 @@ class StorageManager{
   constructor(){
     this.keys = { conversations:"shayan_conversations", settings:"shayan_settings", version:"shayan_version", memories:"shayan_memories" };
     this.available = this._check();
+    this.vault = null;   // { key, salt, iter } while a passcode vault is unlocked
+    this._mem = null;    // working copy while the vault is on (plaintext lives only in memory)
+    this._flushT = null;
+    this._chain = Promise.resolve();
   }
   _check(){
     try{ const k="__t"; localStorage.setItem(k,"1"); localStorage.removeItem(k); return true; }
     catch(e){ return false; }
   }
-  loadConversations(){
-    if(!this.available) return [];
-    try{ return JSON.parse(localStorage.getItem(this.keys.conversations)) || []; }
-    catch(e){ return []; }
+  vaultExists(){ return this.available && Vault.exists(); }
+  async unlockVault(pass){
+    const { data, session } = await Vault.open(pass);
+    this.vault = session;
+    this._mem = { conversations: data.conversations || [], settings: data.settings || null, memories: data.memories || [] };
+    FileStore.key = session.key; FileStore.sealOn = true;
   }
-  saveConversations(list){
-    if(!this.available) return false;
-    try{ localStorage.setItem(this.keys.conversations, JSON.stringify(list)); return true; }
-    catch(e){ console.error("Storage save failed", e); return false; }
+  async enableVault(pass){
+    const data = { conversations: this.loadConversations(), settings: this.loadSettings(), memories: this.loadMemories() };
+    const session = await Vault.create(pass, data);   // writes + verifies the encrypted copy first
+    this.vault = session; this._mem = data;
+    FileStore.key = session.key; FileStore.sealOn = true;
+    await FileStore.resealAll();
+    ["conversations","settings","memories"].forEach(n=>{ try{ localStorage.removeItem(this.keys[n]); }catch(e){} });
   }
-  loadSettings(){
-    if(!this.available) return null;
-    try{ return JSON.parse(localStorage.getItem(this.keys.settings)); }
-    catch(e){ return null; }
+  async disableVault(pass){
+    await Vault.open(pass);                            // wrong passcode throws here
+    const m = this._mem || {};
+    localStorage.setItem(this.keys.conversations, JSON.stringify(m.conversations || []));
+    if(m.settings) localStorage.setItem(this.keys.settings, JSON.stringify(m.settings));
+    localStorage.setItem(this.keys.memories, JSON.stringify(m.memories || []));
+    FileStore.sealOn = false; await FileStore.resealAll(); FileStore.key = null;
+    clearTimeout(this._flushT);
+    localStorage.removeItem(Vault.KEY);
+    this.vault = null; this._mem = null;
   }
-  saveSettings(s){
-    if(!this.available) return false;
-    try{ localStorage.setItem(this.keys.settings, JSON.stringify(s)); return true; }
-    catch(e){ console.error("Settings save failed", e); return false; }
+  _read(name){
+    if(this.vault) return this._mem[name];
+    try{ return JSON.parse(localStorage.getItem(this.keys[name])); }catch(e){ return null; }
   }
-  clearConversations(){ try{ localStorage.removeItem(this.keys.conversations); }catch(e){} }
-  loadMemories(){
-    if(!this.available) return [];
-    try{ return JSON.parse(localStorage.getItem(this.keys.memories)) || []; }
-    catch(e){ return []; }
+  _write(name, value){
+    if(this.vault){ this._mem[name] = value; this._scheduleFlush(); return true; }
+    try{ localStorage.setItem(this.keys[name], JSON.stringify(value)); return true; }
+    catch(e){ console.error(name + " save failed", e); return false; }
   }
-  saveMemories(list){
-    if(!this.available) return false;
-    try{ localStorage.setItem(this.keys.memories, JSON.stringify(list)); return true; }
-    catch(e){ console.error("Memory save failed", e); return false; }
+  _scheduleFlush(){ clearTimeout(this._flushT); this._flushT = setTimeout(()=>{ this.flushNow(); }, 350); }
+  flushNow(){
+    if(!this.vault) return this._chain;
+    clearTimeout(this._flushT);
+    const session = this.vault, snapshot = this._mem;
+    this._chain = this._chain
+      .then(()=>{ if(this.vault === session) return Vault.save(session, snapshot); })
+      .catch(e=> console.error("Vault save failed", e));
+    return this._chain;
   }
-  clearMemories(){ try{ localStorage.removeItem(this.keys.memories); }catch(e){} }
-  clearAll(){ try{ localStorage.clear(); }catch(e){} }
+  loadConversations(){ if(!this.available) return []; const v = this._read("conversations"); return Array.isArray(v) ? v : []; }
+  saveConversations(list){ if(!this.available) return false; return this._write("conversations", list); }
+  loadSettings(){ if(!this.available) return null; return this._read("settings") || null; }
+  saveSettings(s){ if(!this.available) return false; return this._write("settings", s); }
+  clearConversations(){
+    if(this.vault){ this._mem.conversations = []; this._scheduleFlush(); return; }
+    try{ localStorage.removeItem(this.keys.conversations); }catch(e){}
+  }
+  loadMemories(){ if(!this.available) return []; const v = this._read("memories"); return Array.isArray(v) ? v : []; }
+  saveMemories(list){ if(!this.available) return false; return this._write("memories", list); }
+  clearMemories(){
+    if(this.vault){ this._mem.memories = []; this._scheduleFlush(); return; }
+    try{ localStorage.removeItem(this.keys.memories); }catch(e){}
+  }
+  clearAll(){
+    try{ localStorage.clear(); }catch(e){}
+    clearTimeout(this._flushT);
+    this.vault = null; this._mem = null;
+    FileStore.key = null; FileStore.sealOn = false;
+  }
 }
+
+/* ============================================================
+   Vault — optional passcode lock. When on, chats, memory, settings
+   (incl. API keys) and attached files exist on disk ONLY as AES-256-GCM
+   ciphertext. The key is derived from the passcode with PBKDF2-SHA256
+   (600,000 rounds) and lives in memory only; the passcode is never stored.
+   ============================================================ */
+const Vault = {
+  KEY: "shayan_vault",
+  ITER: 600000,
+  _b64(buf){ const b = new Uint8Array(buf); let str = ""; for(let i = 0; i < b.length; i++) str += String.fromCharCode(b[i]); return btoa(str); },
+  _unb64(str){ const raw = atob(str); const b = new Uint8Array(raw.length); for(let i = 0; i < raw.length; i++) b[i] = raw.charCodeAt(i); return b; },
+  supported(){ return !!(window.crypto && crypto.subtle && window.isSecureContext); },
+  exists(){ try{ return !!localStorage.getItem(this.KEY); }catch(e){ return false; } },
+  readRecord(){ try{ return JSON.parse(localStorage.getItem(this.KEY)); }catch(e){ return null; } },
+  async deriveKey(pass, salt, iter){
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name:"PBKDF2", salt, iterations:iter, hash:"SHA-256" }, base, { name:"AES-GCM", length:256 }, false, ["encrypt","decrypt"]);
+  },
+  async encrypt(key, obj){
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name:"AES-GCM", iv }, key, new TextEncoder().encode(JSON.stringify(obj)));
+    return { iv: this._b64(iv), ct: this._b64(ct) };
+  },
+  async decrypt(key, rec){
+    const pt = await crypto.subtle.decrypt({ name:"AES-GCM", iv:this._unb64(rec.iv) }, key, this._unb64(rec.ct));
+    return JSON.parse(new TextDecoder().decode(pt));
+  },
+  async create(pass, data){
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await this.deriveKey(pass, salt, this.ITER);
+    const enc = await this.encrypt(key, data);
+    const rec = { v:1, iter:this.ITER, salt:this._b64(salt), iv:enc.iv, ct:enc.ct };
+    const back = await this.decrypt(key, rec);          // self-check before anything plaintext is removed
+    if(JSON.stringify(back) !== JSON.stringify(data)) throw new Error("vault self-check failed");
+    localStorage.setItem(this.KEY, JSON.stringify(rec));
+    return { key, salt: rec.salt, iter: rec.iter };
+  },
+  async open(pass){
+    const rec = this.readRecord();
+    if(!rec) throw new Error("no vault");
+    const key = await this.deriveKey(pass, this._unb64(rec.salt), rec.iter);
+    const data = await this.decrypt(key, rec);          // throws on a wrong passcode
+    return { data, session:{ key, salt: rec.salt, iter: rec.iter } };
+  },
+  async save(session, data){
+    const enc = await this.encrypt(session.key, data);
+    localStorage.setItem(this.KEY, JSON.stringify({ v:1, iter:session.iter, salt:session.salt, iv:enc.iv, ct:enc.ct }));
+  }
+};
+
+/* Lock screen + passcode prompts (self-contained, no dependency on the rest of the UI) */
+const VaultUI = {
+  _L(){
+    return /^fa/i.test(navigator.language || "")
+      ? { dir:"rtl", title:"Shayan AI", prompt:"رمز عبورت رو وارد کن", pass:"رمز عبور", unlock:"باز کردن", wrong:"رمز عبور اشتباهه.", busy:"…",
+          forgot:"رمز رو فراموش کردم — پاک کردن همه‌ی داده‌ها", confirmErase:"همه‌ی گفتگوها، حافظه و تنظیمات برای همیشه پاک می‌شن. مطمئنی؟" }
+      : { dir:"ltr", title:"Shayan AI", prompt:"Enter your passcode", pass:"Passcode", unlock:"Unlock", wrong:"Wrong passcode.", busy:"…",
+          forgot:"Forgot it? Erase all data", confirmErase:"This permanently erases all chats, memory and settings. Continue?" };
+  },
+  _el(tag, css, text){ const e = document.createElement(tag); if(css) e.style.cssText = css; if(text != null) e.textContent = text; return e; },
+  _shell(dim){
+    const o = this._el("div", "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;background:" + (dim ? "rgba(0,0,0,.65)" : "#0B0E14") + ";font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;");
+    const card = this._el("div", "width:100%;max-width:340px;background:#151A24;border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:22px;color:#EDEFF5;display:flex;flex-direction:column;gap:12px;box-sizing:border-box;");
+    o.appendChild(card);
+    return { o, card };
+  },
+  _input(ph){
+    const i = this._el("input", "width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:#0B0E14;color:#EDEFF5;font-size:16px;");
+    i.type = "password"; i.placeholder = ph; i.autocomplete = "off"; return i;
+  },
+  _btn(label, primary){
+    const b = this._el("button", "padding:11px;border-radius:10px;font-size:15px;cursor:pointer;border:1px solid " + (primary ? "transparent" : "rgba(255,255,255,.2)") + ";" + (primary ? "background:linear-gradient(135deg,#7C5CFF,#22D3EE);color:#fff;" : "background:transparent;color:#EDEFF5;"), label);
+    b.type = "button"; return b;
+  },
+  unlockScreen(storage){
+    const L = this._L();
+    return new Promise((resolve)=>{
+      const { o, card } = this._shell(false);
+      o.dir = L.dir;
+      const inp = this._input(L.pass); inp.autocomplete = "current-password";
+      const err = this._el("div", "color:#F87171;font-size:13px;min-height:16px;text-align:center;", "");
+      const go = this._btn(L.unlock, true);
+      const forgot = this._el("button", "background:none;border:0;color:#9AA3B5;font-size:12px;cursor:pointer;text-decoration:underline;", L.forgot);
+      forgot.type = "button";
+      card.append(this._el("div", "font-size:20px;font-weight:700;text-align:center;", L.title),
+                  this._el("div", "opacity:.75;text-align:center;font-size:14px;", L.prompt), inp, err, go, forgot);
+      document.body.appendChild(o);
+      const submit = async ()=>{
+        if(!inp.value) return;
+        go.disabled = true; go.textContent = L.busy; err.textContent = "";
+        try{ await storage.unlockVault(inp.value); inp.value = ""; o.remove(); resolve(); }
+        catch(e){ err.textContent = L.wrong; go.disabled = false; go.textContent = L.unlock; inp.select(); }
+      };
+      go.addEventListener("click", submit);
+      inp.addEventListener("keydown", e=>{ if(e.key === "Enter") submit(); });
+      forgot.addEventListener("click", ()=>{
+        if(window.confirm(L.confirmErase)){
+          try{ localStorage.clear(); indexedDB.deleteDatabase("shayanai-files"); }catch(e){}
+          location.reload();
+        }
+      });
+      setTimeout(()=> inp.focus(), 50);
+    });
+  },
+  /** Asks for a passcode (optionally twice). Resolves with the string, or null if cancelled. */
+  ask({ title, confirm, minLen, labels }){
+    return new Promise((resolve)=>{
+      const { o, card } = this._shell(true);
+      o.dir = document.documentElement.dir || "ltr";
+      const a = this._input(labels.pass);
+      const b = confirm ? this._input(labels.pass2) : null;
+      const err = this._el("div", "color:#F87171;font-size:13px;min-height:16px;", "");
+      const row = this._el("div", "display:flex;gap:8px;");
+      const ok = this._btn(labels.ok, true), cancel = this._btn(labels.cancel, false);
+      ok.style.flex = "1"; cancel.style.flex = "1";
+      row.append(cancel, ok);
+      card.append(this._el("div", "font-size:17px;font-weight:700;", title), a);
+      if(b) card.appendChild(b);
+      card.append(err, row);
+      document.body.appendChild(o);
+      const done = (v)=>{ o.remove(); resolve(v); };
+      const submit = ()=>{
+        if(a.value.length < minLen){ err.textContent = labels.tooShort; return; }
+        if(b && b.value !== a.value){ err.textContent = labels.mismatch; return; }
+        done(a.value);
+      };
+      ok.addEventListener("click", submit);
+      cancel.addEventListener("click", ()=> done(null));
+      [a, b].forEach(i=>{ if(i) i.addEventListener("keydown", e=>{ if(e.key === "Enter") submit(); }); });
+      setTimeout(()=> a.focus(), 50);
+    });
+  }
+};
 
 /* ============================================================
    WebSearch — live results from a browser-friendly search API
@@ -1488,6 +1701,7 @@ const WebSearch = {
 const fmtSize = (b)=> b < 1024 ? b + " B" : b < 1048576 ? (b/1024).toFixed(1) + " KB" : (b/1048576).toFixed(1) + " MB";
 const FileStore = {
   _mem: new Map(), _db: null, _gcT: null,
+  key: null, sealOn: false,     // set while the passcode vault is unlocked: entries are stored encrypted
   _open(){
     if(this._db) return this._db;
     this._db = new Promise((resolve)=>{
@@ -1500,31 +1714,73 @@ const FileStore = {
     });
     return this._db;
   },
+  async _rawGet(id){
+    const db = await this._open(); if(!db) return null;
+    return new Promise(res=>{
+      try{ const r = db.transaction("files").objectStore("files").get(id); r.onsuccess = ()=> res(r.result === undefined ? null : r.result); r.onerror = ()=> res(null); }
+      catch(e){ res(null); }
+    });
+  },
+  async _rawPut(id, v){
+    const db = await this._open(); if(!db) return;
+    return new Promise(res=>{
+      try{ const tx = db.transaction("files","readwrite"); tx.objectStore("files").put(v, id); tx.oncomplete = tx.onerror = tx.onabort = ()=> res(); }
+      catch(e){ res(); }
+    });
+  },
+  async _rawKeys(){
+    const db = await this._open(); if(!db) return [];
+    return new Promise(res=>{
+      try{ const r = db.transaction("files").objectStore("files").getAllKeys(); r.onsuccess = ()=> res(r.result || []); r.onerror = ()=> res([]); }
+      catch(e){ res([]); }
+    });
+  },
+  async _rawDelete(id){
+    const db = await this._open(); if(!db) return;
+    return new Promise(res=>{
+      try{ const tx = db.transaction("files","readwrite"); tx.objectStore("files").delete(id); tx.oncomplete = tx.onerror = tx.onabort = ()=> res(); }
+      catch(e){ res(); }
+    });
+  },
+  async _rawClear(){
+    const db = await this._open(); if(!db) return;
+    return new Promise(res=>{
+      try{ const tx = db.transaction("files","readwrite"); tx.objectStore("files").clear(); tx.oncomplete = tx.onerror = tx.onabort = ()=> res(); }
+      catch(e){ res(); }
+    });
+  },
+  async _seal(atts){
+    if(this.sealOn && this.key) return Object.assign({ enc:1 }, await Vault.encrypt(this.key, atts));
+    return atts;
+  },
+  async _unseal(v){
+    if(v && v.enc){
+      if(!this.key) return null;
+      try{ return await Vault.decrypt(this.key, v); }catch(e){ return null; }
+    }
+    return v;
+  },
   async put(id, atts){
     this._mem.set(id, atts);
-    const db = await this._open(); if(!db) return;
-    try{ db.transaction("files","readwrite").objectStore("files").put(atts, id); }catch(e){}
+    await this._rawPut(id, await this._seal(atts));
   },
   async get(id){
     if(this._mem.has(id)) return this._mem.get(id);
-    const db = await this._open(); if(!db) return null;
-    return new Promise(res=>{
-      try{
-        const r = db.transaction("files").objectStore("files").get(id);
-        r.onsuccess = ()=>{ if(r.result) this._mem.set(id, r.result); res(r.result || null); };
-        r.onerror = ()=> res(null);
-      }catch(e){ res(null); }
-    });
+    const v = await this._unseal(await this._rawGet(id));
+    if(v) this._mem.set(id, v);
+    return v || null;
+  },
+  /** Re-writes every stored entry in the current mode (encrypted or plain). */
+  async resealAll(){
+    for(const k of await this._rawKeys()){
+      const plain = await this._unseal(await this._rawGet(k));
+      if(plain) await this._rawPut(k, await this._seal(plain));
+    }
   },
   async gc(validIds){
     const keep = new Set(validIds);
     for(const k of Array.from(this._mem.keys())) if(!keep.has(k)) this._mem.delete(k);
-    const db = await this._open(); if(!db) return;
-    try{
-      const store = db.transaction("files","readwrite").objectStore("files");
-      const req = store.openKeyCursor();
-      req.onsuccess = ()=>{ const c = req.result; if(!c) return; if(!keep.has(c.key)) store.delete(c.key); c.continue(); };
-    }catch(e){}
+    for(const k of await this._rawKeys()) if(!keep.has(k)) await this._rawDelete(k);
   },
   scheduleGc(getIds){
     clearTimeout(this._gcT);
@@ -1532,8 +1788,7 @@ const FileStore = {
   },
   async clear(){
     this._mem.clear();
-    const db = await this._open(); if(!db) return;
-    try{ db.transaction("files","readwrite").objectStore("files").clear(); }catch(e){}
+    await this._rawClear();
   }
 };
 
@@ -1655,6 +1910,7 @@ class SettingsManager{
    and everything works fully offline.
    ============================================================ */
 const WEBLLM_CDN_URLS = [
+  new URL("vendor/web-llm.js", location.href).href, // optional: drop your own pinned copy here to avoid trusting any CDN
   "https://esm.run/@mlc-ai/web-llm",
   "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/+esm",
   "https://unpkg.com/@mlc-ai/web-llm?module"
@@ -1883,6 +2139,7 @@ class ApiEngine{
       stream: !!s.get("streaming")
     };
 
+    assertSafeApiUrl(s.get("apiUrl"));
     let res;
     try{
       res = await fetch(s.get("apiUrl"), {
@@ -1992,6 +2249,7 @@ class ApiEngine{
       return `${base}/${encodeURIComponent(prompt)}?${qs.toString()}`;
     }
 
+    assertSafeApiUrl(imageUrl);
     let res;
     try{
       res = await fetch(imageUrl, {
@@ -2228,8 +2486,8 @@ class ChatManager{
    UIManager — DOM rendering & event wiring (the app conductor)
    ============================================================ */
 class UIManager{
-  constructor(){
-    this.storage = new StorageManager();
+  constructor(storage){
+    this.storage = storage || new StorageManager();
     this.settings = new SettingsManager(this.storage);
     this.api = new LocalEngine(this.settings);
     this.apiEngine = new ApiEngine(this.settings);
@@ -2285,6 +2543,7 @@ class UIManager{
       cfgApiUrl:$("cfgApiUrl"), cfgApiKey:$("cfgApiKey"), cfgApiModel:$("cfgApiModel"),
       imageApiSection:$("imageApiSection"), cfgApiImageUrl:$("cfgApiImageUrl"), cfgApiImageModel:$("cfgApiImageModel"), cfgApiImageKey:$("cfgApiImageKey"),
       attachBtn:$("attachBtn"), attachInput:$("attachInput"), attachChips:$("attachChips"),
+      lockStatus:$("lockStatus"), lockEnableBtn:$("lockEnableBtn"), lockDisableBtn:$("lockDisableBtn"), lockNowBtn:$("lockNowBtn"),
       searchModeBtn:$("searchModeBtn"), cfgSearchProvider:$("cfgSearchProvider"), cfgSearchKey:$("cfgSearchKey"), searchKeyField:$("searchKeyField"),
       apiTutorialToggle:$("apiTutorialToggle"), apiTutorialWrap:$("apiTutorialWrap"), apiTutorialFrame:$("apiTutorialFrame"),
       cfgApiTutorialToggle:$("cfgApiTutorialToggle"), cfgApiTutorialWrap:$("cfgApiTutorialWrap"), cfgApiTutorialFrame:$("cfgApiTutorialFrame"),
@@ -2376,6 +2635,31 @@ class UIManager{
       box.appendChild(chip);
     });
     this._updateComposerHint();
+  }
+  _syncLockUI(){
+    const on = !!this.storage.vault;
+    this.dom.lockStatus.textContent = t(on ? "lockStatusOn" : "lockStatusOff");
+    this.dom.lockEnableBtn.style.display = on ? "none" : "";
+    this.dom.lockNowBtn.style.display = on ? "" : "none";
+    this.dom.lockDisableBtn.style.display = on ? "" : "none";
+  }
+  _lockLabels(){
+    return { pass:t("lockPass"), pass2:t("lockPass2"), tooShort:t("lockTooShort"), mismatch:t("lockMismatch"), ok:t("lockOk"), cancel:t("lockCancel") };
+  }
+  async _enableLock(){
+    if(!Vault.supported()){ this.toast(t("lockUnsupported"), "error"); return; }
+    const pass = await VaultUI.ask({ title:t("lockSetTitle"), confirm:true, minLen:8, labels:this._lockLabels() });
+    if(!pass) return;
+    try{ await this.storage.enableVault(pass); this.toast(t("lockOnToast")); }
+    catch(e){ console.error(e); this.toast(t("lockFailed"), "error"); }
+    this._syncLockUI();
+  }
+  async _disableLock(){
+    const pass = await VaultUI.ask({ title:t("lockEnterTitle"), confirm:false, minLen:1, labels:this._lockLabels() });
+    if(!pass) return;
+    try{ await this.storage.disableVault(pass); this.toast(t("lockOffToast")); }
+    catch(e){ this.toast(t("lockWrong"), "error"); }
+    this._syncLockUI();
   }
   _syncSearchUI(){
     const on = !!this.settings.get("searchEnabled");
@@ -2503,6 +2787,9 @@ class UIManager{
     d.sendBtn.addEventListener("click", ()=> this.handleSend());
     d.stopBtn.addEventListener("click", ()=> this.stopGenerating());
     d.enhanceBtn.addEventListener("click", ()=> this._enhancePrompt());
+    d.lockEnableBtn.addEventListener("click", ()=> this._enableLock());
+    d.lockDisableBtn.addEventListener("click", ()=> this._disableLock());
+    d.lockNowBtn.addEventListener("click", async ()=>{ await this.storage.flushNow(); location.reload(); });
     d.attachBtn.addEventListener("click", ()=> d.attachInput.click());
     d.attachInput.addEventListener("change", async ()=>{
       const picked = Array.from(d.attachInput.files || []);
@@ -2805,6 +3092,7 @@ class UIManager{
     d.cfgSearchProvider.value = s.get("searchProvider")||"wikipedia";
     d.cfgSearchKey.value = s.get("searchKey")||"";
     this._syncSearchUI();
+    this._syncLockUI();
     this._syncConnectionModeUI();
     this._updateComposerHint();
     this._updatePersonaPill();
@@ -2911,9 +3199,9 @@ class UIManager{
     let lastGroup = null, html = "";
     for(const c of items){
       const group = fmtDay(c.updatedAt);
-      if(group !== lastGroup){ html += `<div class="history-group-label">${group}</div>`; lastGroup = group; }
+      if(group !== lastGroup){ html += `<div class="history-group-label">${escapeHtml(String(group))}</div>`; lastGroup = group; }
       const active = c.id === this.chat.activeId;
-      html += `<div class="chat-item ${active?'active':''}" data-id="${c.id}" tabindex="0" role="button" aria-label="Open conversation: ${escapeHtml(c.title)}">
+      html += `<div class="chat-item ${active?'active':''}" data-id="${escapeHtml(String(c.id))}" tabindex="0" role="button" aria-label="Open conversation: ${escapeHtml(c.title)}">
         <span class="chat-item-title">${escapeHtml(c.title)}</span>
         <span class="chat-item-actions">
           <button data-action="rename" title="Rename" aria-label="Rename conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
@@ -3586,6 +3874,7 @@ class UIManager{
       case "SERVER": return {title:"API unavailable", detail:"The API is currently having issues. Try again shortly."};
       case "API_ERROR": return {title:"API error", detail: err.message || "The API rejected the request. Check your settings."};
       case "IMAGE_ENDPOINT_UNKNOWN": return {title:"Image generation unavailable", detail: err.message || "This API doesn't support image generation, or your API URL doesn't follow the standard pattern needed to find its image endpoint. Try an OpenAI key with a model like dall-e-3."};
+      case "INSECURE_URL": return {title:"Unsafe API URL", detail: err.message};
       case "EMPTY": return {title:"Empty response", detail: usingApi ? "The API returned no content. Try again." : "The model returned no content. Try again."};
       default: return {title:"Request failed", detail: err.message || "Something went wrong. Please try again."};
     }
@@ -3597,6 +3886,49 @@ class UIManager{
     this.dom.stopBtn.style.display = v ? "flex":"none";
     this._updateSendEnabled();
   }
+
+  /* SHARE_BEGIN */
+  /** Imports what the phone's Share sheet handed to the PWA (text, link, files).
+   *  The service worker parks it in a temporary cache; it is read here, put in the
+   *  message box for review (never auto-sent) and the cache is deleted right away. */
+  async _checkSharedContent(){
+    if(!/[?&]share=1(&|$)/.test(location.search)) return;
+    try{ history.replaceState(null, "", location.pathname); }catch(e){}
+    try{
+      if(!("caches" in window)) return;
+      const cache = await caches.open("shayan-ai-share-inbox");
+      const reqs = await cache.keys();
+      let meta = {};
+      const files = [];
+      for(const rq of reqs){
+        const res = await cache.match(rq);
+        if(!res) continue;
+        if(/\/share-inbox\/meta$/.test(rq.url)){
+          meta = await res.json().catch(()=> ({}));
+        } else if(/\/share-inbox\/file-\d+$/.test(rq.url)){
+          const blob = await res.blob();
+          let name = "file";
+          try{ name = decodeURIComponent(res.headers.get("X-Name") || "file"); }catch(e){}
+          files.push(new File([blob], name, { type: blob.type }));
+        }
+      }
+      await caches.delete("shayan-ai-share-inbox");
+      const title = String(meta.title || "").trim(), text = String(meta.text || "").trim(), link = String(meta.url || "").trim();
+      const bits = [];
+      if(title && title !== text) bits.push(title);
+      if(text) bits.push(text);
+      if(link && !text.includes(link)) bits.push(link);
+      if(bits.length){
+        const box = this.dom.composerInput;
+        box.value = ((box.value.trim() ? box.value.trim() + "\n\n" : "") + bits.join("\n")).slice(0, 20000);
+        box.dispatchEvent(new Event("input", { bubbles:true }));
+      }
+      if(files.length) await this._addFiles(files);
+      this.dom.composerInput.focus();
+      if(bits.length || files.length) this.toast(t("shareReceived"));
+    }catch(e){ /* sharing is best-effort */ }
+  }
+  /* SHARE_END */
 
   /* ---------- PWA ---------- */
   _initPWA(){
@@ -3610,14 +3942,26 @@ class UIManager{
       // the app still works fine without offline shell caching.
       navigator.serviceWorker.register("sw.js").catch(()=>{ /* PWA offline caching unavailable; app still works online */ });
     }
+    setTimeout(()=> this._checkSharedContent(), 300);
   }
 }
 
 /* ============================================================
    Boot
    ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
-  window.ShayanAI = new UIManager();
+document.addEventListener("DOMContentLoaded", async () => {
+  const storage = new StorageManager();
+  if(storage.vaultExists()) await VaultUI.unlockScreen(storage);
+  window.ShayanAI = new UIManager(storage);
+  let hiddenAt = 0;
+  document.addEventListener("visibilitychange", () => {
+    const app = window.ShayanAI;
+    if(document.visibilityState === "hidden"){ hiddenAt = Date.now(); storage.flushNow(); return; }
+    const away = hiddenAt ? Date.now() - hiddenAt : 0;
+    hiddenAt = 0;
+    if(storage.vault && away > 5 * 60 * 1000 && app && !app.isGenerating && !(app.api && app.api.loading)) location.reload();
+  });
+  window.addEventListener("pagehide", () => storage.flushNow());
 });
 
 })();
