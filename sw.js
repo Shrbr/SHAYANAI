@@ -1,4 +1,4 @@
-const SHELL_CACHE = "shayan-ai-shell-v12";
+const SHELL_CACHE = "shayan-ai-shell-v14";
 const SHARE_CACHE = "shayan-ai-share-inbox";
 const SHELL_FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
@@ -34,11 +34,23 @@ async function handleShare(request) {
       }));
     }
   } catch (err) { /* open the app anyway */ }
+  try {
+    const open = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    open.forEach((c) => c.postMessage({ type: "share-ready" }));
+  } catch (err) { /* no open windows */ }
   return Response.redirect(new URL("./?share=1", scope).href, 303);
 }
 
 self.addEventListener("fetch", (e) => {
   const reqUrl = new URL(e.request.url);
+  // Some launchers deliver a share as a plain GET (?title=&text=&url=): bounce it to the app with the same params.
+  if (e.request.method === "GET" && reqUrl.origin === self.location.origin && reqUrl.pathname.endsWith("/share-target")) {
+    const target = new URL("./", self.registration.scope);
+    target.searchParams.set("share", "1");
+    ["title", "text", "url"].forEach((k) => { const v = reqUrl.searchParams.get(k); if (v) target.searchParams.set(k, v); });
+    e.respondWith(Response.redirect(target.href, 303));
+    return;
+  }
   if (e.request.method === "POST" && reqUrl.origin === self.location.origin && reqUrl.pathname.endsWith("/share-target")) {
     e.respondWith(handleShare(e.request));
     return;
