@@ -1,4 +1,4 @@
-const SHELL_CACHE = "shayan-ai-shell-v14";
+const SHELL_CACHE = "shayan-ai-shell-v17";
 const SHARE_CACHE = "shayan-ai-share-inbox";
 const SHELL_FILES = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
